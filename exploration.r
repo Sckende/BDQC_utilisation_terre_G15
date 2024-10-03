@@ -5,8 +5,10 @@ library(geodata)
 
 ### data management
 ##### Qc poly
+# Canada dl
+# gadm(country = "CAN", level = 1, path = "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/")
 # qc <- st_read("/home/claire/BDQC-GEOBON/data/QUEBEC_Unique_poly.gpkg")
-can <- readRDS("/home/claire/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
+can <- readRDS("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
 qc <- st_as_sf(can[can$NAME_1 == "Québec", ])
 
 #### 2000-2005-2010-2015-2020
@@ -19,11 +21,11 @@ for (y in c(
     print(y)
     # Quebec cover - From UTM 17 to UTM 21
     # u16 <- rast("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use/2000/LU2000_u16/LU2000_u16_v4_2022_02.tif")
-    u17 <- rast(paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u17/LU", y, "_u17_v4_2022_02.tif"))
-    u18 <- rast(paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u18/LU", y, "_u18_v4_2022_02.tif"))
-    u19 <- rast(paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u19/LU", y, "_u19_v4_2022_02.tif"))
-    u20 <- rast(paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u20/LU", y, "_u20_v4_2022_02.tif"))
-    u21 <- rast(paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u21/LU", y, "_u21_v4_2022_02.tif"))
+    u17 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u17/LU", y, "_u17_v4_2022_02.tif"))
+    u18 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u18/LU", y, "_u18_v4_2022_02.tif"))
+    u19 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u19/LU", y, "_u19_v4_2022_02.tif"))
+    u20 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u20/LU", y, "_u20_v4_2022_02.tif"))
+    u21 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u21/LU", y, "_u21_v4_2022_02.tif"))
     # u22 <- rast("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use/2000/LU2000_u22/LU2000_u22_v4_2022_02.tif")
 
 
@@ -39,7 +41,7 @@ for (y in c(
         map_c <- crop(coll[i], qc_tr)
         map_m <- mask(map_c, qc_tr)
 
-        writeRaster(map_m, paste0("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_treat/", y, "/", varnames(map_m), "_treat.tif"), overwrite = T)
+        writeRaster(map_m, paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_treat/", y, "/", varnames(map_m), "_treat.tif"), overwrite = T)
 
         coll_clip[i] <- map_m
         names(coll_clip)[i] <- varnames(map_m)
@@ -47,3 +49,7 @@ for (y in c(
 }
 
 coll_clip
+
+# test buckets s5cmd
+map <- rast("/vsicurl/https://object-arbutus.cloud.computecanada.ca/bq-io/io/AAC_land_use_treat/2015/LU2015_u21_v4_2022_02_treat.tif")
+plot(map)
