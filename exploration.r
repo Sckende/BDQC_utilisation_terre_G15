@@ -51,5 +51,10 @@ for (y in c(
 coll_clip
 
 # test buckets s5cmd
-map <- rast("/vsicurl/https://object-arbutus.cloud.computecanada.ca/bq-io/io/AAC_land_use_treat/2015/LU2015_u21_v4_2022_02_treat.tif")
-plot(map)
+x11()
+par(mfrow = c(1, 5))
+for (i in 18:21) {
+    print(i)
+    map <- rast(paste0("/vsicurl/https://object-arbutus.cloud.computecanada.ca/bq-io/io/AAC_land_use_treat/2015/LU2015_u", i, "_v4_2022_02_treat.tif"))
+    plot(map)
+}
