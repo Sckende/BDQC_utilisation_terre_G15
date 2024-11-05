@@ -1,11 +1,13 @@
 # Objectif - Exploration des jeux de donnees, identification de la structure
 library(sf)
 library(terra)
-y <- 20
+y <- 2012
 path <- paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/MELCCFP_Utilisation_territoire/utilisation_territoire_", y, "/utilisation_territoire_", y, ".tif")
 
 map <- rast(path)
 map
+
+map_proj <- project(map, "EPSG:6623")
 levels(map)
 cats <- cats(map)
 dim(cats[[1]])
