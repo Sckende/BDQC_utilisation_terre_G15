@@ -73,15 +73,16 @@ plot(st_geometry(reg_ecol))
 # plot(st_geometry(test), add = T, col = "green")
 
 coll_clip <- list()
-# for (y in seq(2015, 2020, 5)) {
-for (y in seq(2000, 2020, 5)) {
+for (y in c(2020)) {
+    # for (y in seq(2000, 2020, 5)) {
     u17 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u17/LU", y, "_u17_v4_2022_02.tif"))
     u18 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u18/LU", y, "_u18_v4_2022_02.tif"))
     u19 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u19/LU", y, "_u19_v4_2022_02.tif"))
     u20 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u20/LU", y, "_u20_v4_2022_02.tif"))
     u21 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/land_use_raw/", y, "/LU", y, "_u21/LU", y, "_u21_v4_2022_02.tif"))
 
-    reg_coll <- sprc(u17, u18, u19, u20, u21)
+    # reg_coll <- sprc(u17, u18, u19, u20, u21)
+    reg_coll <- list(u17, u18, u19, u20, u21)
     print(paste0("--------------------> année ", y))
 
     for (reg in 1:nrow(reg_ecol)) {
@@ -94,7 +95,7 @@ for (y in seq(2000, 2020, 5)) {
             tryCatch(
                 {
                     print("-----> conversion")
-                    test_proj <- st_transform(test, st_crs(reg_coll[i]))
+                    test_proj <- st_transform(test, st_crs(reg_coll[[i]]))
                     print("-----> crop & mask")
                     map_c <- crop(reg_coll[i], test_proj)
                     map_m <- mask(map_c, test_proj)
@@ -120,8 +121,18 @@ names(coll_clip)[[1]]
 
 final <- data.frame()
 for (i in 1:length(coll_clip)) {
-    fq <- freq(coll_clip[[i]])
-    fq$info <- names(coll_clip)[[i]]
+    fq <- terra::freq(coll_clip[[i]])
+    fq$info <- names(coll_clip)[i]
 
     final <- rbind(final, fq)
 }
+
+
+t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2010-classification.tif")
+t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2015-classification.tif")
+t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2020-classification.tif")
+x11()
+par(mfrow = c(1, 3))
+tl <- list(t1, t2, t3)
+lapply(tl, plot)
+plot(t1)
