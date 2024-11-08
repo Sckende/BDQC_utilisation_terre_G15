@@ -1,5 +1,5 @@
 # Generation synthese nb pixels par categorie d'utilisation du territoire
-files <- list.files("/home/claire/BDQC-GEOBON/data/g15_indicators/MELCCFP_utilisation_territoire", full.names = T)
+files <- list.files("/home/claire/BDQC-GEOBON/data/g15_indicators/MELCCFP_utilisation_territoire", full.names = T, pattern = "version")
 land_use <- data.frame()
 
 for (i in files) {
@@ -26,3 +26,4 @@ df1 <- land_use |>
 library(ggplot2)
 ggplot(df1, aes(x = year, y = pix, color = land_type)) +
     geom_line()
+# !!!! attention voir le pb de changement de resolution

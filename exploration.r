@@ -132,11 +132,16 @@ for (i in 1:length(coll_clip)) {
 library(terra)
 library(sf)
 library(dplyr)
-can <- readRDS("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
+# can <- readRDS("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
+can <- readRDS("/home/claire/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
 qc <- st_as_sf(can[can$NAME_1 == "Québec", ])
-t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2010-classification.tif")
-t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2015-classification.tif")
-t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2020-classification.tif")
+
+# t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2010-classification.tif")
+# t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2015-classification.tif")
+# t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2020-classification.tif")
+t1 <- terra::rast("/home/claire/Downloads/landcover-2010-classification.tif")
+t2 <- terra::rast("/home/claire/Downloads/landcover-2015-classification.tif")
+t3 <- terra::rast("/home/claire/Downloads/landcover-2020-classification.tif")
 t_ls <- list(t1, t2, t3)
 qc <- st_transform(qc, st_crs(t1))
 
@@ -155,9 +160,16 @@ par(mfrow = c(1, 3))
 lapply(t_treat, plot)
 
 # writeRaster(t_treat[[3]], "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020.tif")
-t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
-t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
-t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
+# writeRaster(t_treat[[1]], "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010.tif")
+# writeRaster(t_treat[[2]], "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015.tif")
+# writeRaster(t_treat[[3]], "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020.tif")
+
+# t1 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
+# t2 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
+# t3 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
+t1 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
+t2 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
+t3 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
 
 t_treat <- list(t1, t2, t3)
 
@@ -189,11 +201,43 @@ final$cat[final$value == 19] <- "snow_ice"
 final2 <- final[!is.na(final$cat), ]
 
 # write.table(final2, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire.txt")
+final2 <- read.table("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire_6623.txt")
 
 final3 <- final2 |>
     group_by(year, cat) |>
     summarise(tot = sum(count))
+final3$area <- final3$tot * 30 * 30
+# write.table(final3, "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire_6623.txt")
+
 
 library(ggplot2)
-ggplot(final3, aes(x = year, y = tot, color = cat)) +
+x11()
+ggplot(final3, aes(x = year, y = area, color = cat)) +
     geom_line()
+x11()
+par(mfrow = c(2, 2))
+plot(final3$year[final3$cat == "wetland"], final3$area[final3$cat == "wetland"] / 1000000, type = "b", main = "wetland", xlab = "year", ylab = "area (km2)")
+plot(final3$year[final3$cat == "cropland"], final3$area[final3$cat == "cropland"] / 1000000, type = "b", main = "cropland", xlab = "year", ylab = "area (km2)")
+plot(final3$year[final3$cat == "forest"], final3$area[final3$cat == "forest"] / 1000000, type = "b", main = "forest", xlab = "year", ylab = "area (km2)")
+plot(final3$year[final3$cat == "urban"], final3$area[final3$cat == "urban"] / 1000000, type = "b", main = "urban", xlab = "year", ylab = "area (km2)")
+
+#### MELCCFP data
+# =====> see script MELCCFP_data_explo_2.r
+
+#### land_use data
+
+files <- list.files("/home/claire/BDQC-GEOBON/data/g15_indicators/land_use_treat", pattern = "6623", full.names = T)
+
+land_use <- data.frame()
+
+for (i in files) {
+    df <- read.table(i, h = T)
+    land_use <- rbind(land_use, df)
+}
+names(land_use) <- c("layer", names(land_use)[1:3])
+unique(land_use$land_type)
+
+truc <- land_use |>
+    group_by(year, land_type) |>
+    summarise(sum_pix = sum(pix_num))
+plot(x = truc$year[truc$land_type == "Settlement"], y = truc$sum_pix[truc$land_type == "Settlement"], type = "b", main = "Settlement", xlab = "year", ylab = "pixel number")
