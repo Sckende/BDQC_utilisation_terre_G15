@@ -1,8 +1,9 @@
+# data source = Agriculture & Agroalimentaire Canada
 # obtention de la synthese du nombre de pixels par categories avec Narval #
 
 df <- data.frame()
 for (y in seq(2000, 2020, 5)) {
-    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/final_pix_per_land_type_", y, ".txt"))
+    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/final_pix_per_land_type_", y, "_6623_projection.txt"))
     df <- rbind(df, t)
 }
 

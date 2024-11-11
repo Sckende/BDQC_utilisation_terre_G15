@@ -4,11 +4,11 @@ subtitle: "Exploration des données"
 output:
   html_document:
     toc: true
-    number_sections: true
+    number_sections: false
     toc_float: true
 ---
 
-```{r, include = F}
+```{r param, include = F}
 # Output figure in HTML5
 if (knitr::is_html_output()) {
     knitr::knit_hooks$set(
@@ -25,13 +25,180 @@ if (knitr::is_html_output()) {
 
 # packages
 # source("C:/Users/ccjuhasz/Desktop/SMAC/GITHUB/SMAC-ENTROPIE_tracking/PTEBAR-JUV/packages_list.r")
+library(dplyr)
+library(stringr)
+library(knitr)
+library(plotly)
+library(ggplot2)
 
 # Data
 # synth <- readRDS("C:/Users/ccjuhasz/Desktop/SMAC/Projet_publi/6-PNB_isotopes/DATA/GitHub_Pages/ISOSCAPE_synthese_par_ind.rds")
 ```
 
-# Mise en contexte
+## Mise en contexte  
+
+**Définition** 
+
+Évolution dans le temps de la superficie des différents types d’utilisation du sol sur le territoire québécois. 
+
+**Lien avec le Nouveau cadre mondial de biodiversité de Kunming-Montréal** 
+
+**Cible 1** - Veiller à ce que toutes les zones fassent l'objet d'une planification spatiale participative, intégrée et respectueuse de la biodiversité et/ou soient gérées efficacement dans le cadre de processus de changement d'affectation des terres et des mers. 
+
+## Méthodologie  
+
+### Résumé méthodologique 
+
+Somme des superficies par classe d’utilisation des terres au 5 ans, de 2000 à 2020. Les superficies seront rapportées à la surface totale du Québec se situant sous le 60éme parallèle afin d’obtenir une proportion.  
+Un traitement spécial sera fait pour obtenir une classification des milieux humides la plus inclusive possible en agrégant les types de forêts humides et terres humides en une catégorie unique.  
+
+### Type de méthodologie 
+
+Valeur exacte rapportée 
+
+### Limitations 
+
+- Données disponibles uniquement sous le 60e parallèle 
+- Création de nouvelles classes d’utilisation des terres au cours de la série temporelle – Les nouvelles classes seront retirées lors du calcul de l’indicateur 
+- Sous-divisions manquantes pour certaines classes - par exemple, pas de sous-divisions par type de forêts pour la classe forêts. 
+- En général, dissocier les erreurs de classification dans les 
+
+### Incertitude 
+
+Aucune à rapporter 
   
-## A développer
-  
-# Bilan data brutes  
+## Données accessibles
+
+|                         Type de données requises                          |                                                                                                                                     Source                                                                                                                                      |
+|:-------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| Utilisation du territoire                                                 | Données Québec [[lien]](https://www.donneesquebec.ca/recherche/dataset/utilisation-du-territoire)                                                                                                                                                                                                                                                           |
+| Cartographie de l’occupation des sols des Basses-Terres du Saint-Laurent  | Données Québec [[lien]](https://www.donneesquebec.ca/recherche/dataset/cartographie-de-l-occupation-du-sol-des-basses-terres-du-saint-laurent)                                                                                                                                                                                                                                                           |
+| Utilisation des terres                                                    | Agriculture et Agroalimentaire Canada, 2021,  « Séries chronologiques d’utilisation des terres d’AAC : 2000, 2005, 2010, 2015, 2020 », Division de l’agroclimat, de la géomatique et de l’observation de la Terre, Direction générale des sciences et de la technologie [[lien]](https://ouvert.canada.ca/data/fr/dataset/fa84a70f-03ad-4946-b0f8-a3b481dd5248)  |
+| 2010, 2015, 2020 Land cover Canada                                        | Canada Center for Remote Sensing [[lien]](https://open.canada.ca/data/en/dataset/ee1580ab-a23d-4f86-a09b-79763677eb47)                                                                                                                                                                                                                                         |
+
+## Description des données  
+
+### Utilisation du territoire par Données Québec  
+
+Ces données ont été produites pour répondre au besoin du MELCC afin de remplir leurs mandats de conservation et de suivi de l’état de l’environnement. Il s’agit d’un assemblage de plusieurs sources de données (21 sources pour la dernière version) dont la précision et la représentativité peuvent fluctuer en fonction des régions.  
+
+
+| Spécifications  | Temporelle                                   | Spatiale                                   |
+|-----------------|----------------------------------------------|--------------------------------------------|
+| Couverture      | 2012-2020 (Québec complet à partir de 2013)  | Québec                                     |
+| Résolution      | 1 an                                         | 30 x 30 m puis 10 x 10 m à partir de 2019  |
+ 
+### Cartographie de l’occupation des sols des Basses-Terres du Saint-Laurent par Données Québec 
+
+Ce jeu de données représente l’état des milieux naturels en 2014 ou à une date plus récente (mise à jour le 26 juin 2023) et a été produit dans le cadre du Plan d’action Saint-Laurent pour l’élaboration d’un plan intégré de conservation des milieux naturels et de la biodiversité. L’unité minimale des polygones utilisés est de 0.5 ha. La base de données représente le fruit de l’agrégation et du traitement (dont de la photo-interprétation) de données issues de plusieurs sources : base de données des cultures assurées (Financière agricole du Québec), base de données topographiques du Québec, cadre de référence hydrographique du Québec (MDDELCC), cartographie des cultures au Canada (Agriculture et Agroalimentaire Canada), cartographie détaillée des milieux humides (CIC et MDDELCC), réseau hydrographique national (Ressources naturelles Canada), système d’information écoforestière (MRNF) et système de référence linéaire (Transport Québec). 
+
+| Spécifications  | Temporelle  | Spatiale                        |
+|-----------------|-------------|---------------------------------|
+| Couverture      | 2014        | Basses-Terres du Saint-Laurent  |
+| Résolution      | ponctuelle  | -                               |  
+
+### Utilisation des terres par Agriculture et Agroalimentaire Canada  
+
+Les données d’utilisation des terres sont des données cartographiques de haute précision et de haute résolution fournies par Agriculture et Agroalimentaire Canada. Ces données sont divisées en 7 classes principales : forêts, lieux habités, terres cultivées, prairies, terres humides, eaux et autres terres. Ces classes sont définies suivant le protocole du Groupe d’experts intergouvernemental sur l’évolution du climat (GIEC). Chacune des classes du GIEC possèdent d'une à 11 sous-classes. Une spécification complète du contenu des données est accessible au lien suivant [AAC, 2018]. Les données sont divisées par zone UTM et projetées en WGS84.  
+
+| Spécifications  | Temporelle  | Spatiale                |
+|-----------------|-------------|-------------------------|
+| Couverture      | 2000-2020   | Canada < 60e parallèle  |
+| Résolution      | 5 ans       | 30m                     |
+
+#### Traitement des catégories 
+```{r data_treat_AAC, include = FALSE}
+df <- data.frame()
+for (y in seq(2000, 2020, 5)) {
+    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/final_pix_per_land_type_", y, "_6623_projection.txt"))
+    df <- rbind(df, t)
+}
+
+names(df) <- c("layer", names(df)[1:3])
+cat <- data.frame(cat = unique(df$land_type))
+cat$use <- ifelse(cat$cat %in% c(
+    "Forest Regenerating after Harvest 20-29 years",
+    "Forest Wetland Regenerating after Harvest 20-29 years",
+    "Newly-Detected Settlement <10 years",
+    "Newly-Detected Settlement Forest <10 years",
+    "Newly-Detected Vegetated Settlement <10 years",
+    "Newly-Detected High Reflectance Settlement <10 years",
+    "Newly-Detected Very High Reflectance Settlement <10 years",
+    "Annual Cropland",
+    "Land Converted to Cropland",
+    "Land Converted to Annual Cropland",
+    "Snow and Ice",
+    "Newly-Detected Road <10 years"
+), "non", "oui")
+
+# Groupement des classes
+cat$class <- NA
+
+cat$class[cat$cat %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forest"
+
+cat$class[cat$cat %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Settlement"
+cat$class[cat$cat %in% c("Cropland")] <- "Cropland"
+cat$class[cat$cat %in% c("Grassland Unmanaged")] <- "Grassland"
+cat$class[cat$cat %in% c("Wetland")] <- "Wetland"
+cat$class[cat$cat %in% c("Water")] <- "Water"
+cat$class[cat$cat %in% c("Other Land")] <- "Other Land"
+
+cat$class[is.na(cat$class)] <- "-"
+```
+
+```{r AAC_cat, echo = FALSE}
+kable(cat,
+    caption = "Tab. x. Choix des catégories utilisées pour l'analyse",
+    row.names = FALSE
+)
+```
+
+```{r AAC_viz, echo = FALSE}
+df2 <- df[!df$land_type %in% c(
+    "Forest Regenerating after Harvest 20-29 years",
+    "Forest Wetland Regenerating after Harvest 20-29 years",
+    "Newly-Detected Settlement <10 years",
+    "Newly-Detected Settlement Forest <10 years",
+    "Newly-Detected Vegetated Settlement <10 years",
+    "Newly-Detected High Reflectance Settlement <10 years",
+    "Newly-Detected Very High Reflectance Settlement <10 years",
+    "Annual Cropland",
+    "Land Converted to Cropland",
+    "Land Converted to Annual Cropland",
+    "Snow and Ice",
+    "Newly-Detected Road <10 years"
+), ]
+
+# groupement en classe
+df2$class <- NA
+
+df2$class[df2$land_type %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forest"
+
+df2$class[df2$land_type %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Settlement"
+df2$class[df2$land_type %in% c("Cropland")] <- "Cropland"
+df2$class[df2$land_type %in% c("Grassland Unmanaged")] <- "Grassland"
+df2$class[df2$land_type %in% c("Wetland")] <- "Wetland"
+df2$class[df2$land_type %in% c("Water")] <- "Water"
+df2$class[df2$land_type %in% c("Other Land")] <- "Other Land"
+
+df_sum <- df2 %>%
+    group_by(class, year) %>%
+    summarise(sum = sum(pix_num))
+
+df_sum$area <- (df_sum$sum * 30 * 30) / 1000000
+
+p <- ggplot(data = df_sum, aes(x = year, y = area, color = class)) +
+    geom_line(linewidth = 1)
+```
+```{r AAC_plot, echo = FALSE}
+print(p)
+```
+
+### Couverture terrestre par Centre Canadien de Télédétection  
+
+Ce jeu de données, à l’échelle du Canada, est produit à partir des observations des capteurs Landsat Operational Land Imager, avec une exactitude de 86.9% sans disparité spatiale marquée.  
+
+| Spécifications  | Temporelle  | Spatiale                      |
+|-----------------|-------------|-------------------------------|
+| Couverture      | 2010-2020   | Canada, Etats-Unis & Mexique  |
+| Résolution      | 5 ans       | 30m                           |
