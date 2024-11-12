@@ -132,16 +132,16 @@ for (i in 1:length(coll_clip)) {
 library(terra)
 library(sf)
 library(dplyr)
-# can <- readRDS("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
-can <- readRDS("/home/claire/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
+can <- readRDS("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
+# can <- readRDS("/home/claire/BDQC-GEOBON/data/g15_indicators/gadm/gadm41_CAN_1_pk.rds")
 qc <- st_as_sf(can[can$NAME_1 == "Québec", ])
 
 # t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2010-classification.tif")
 # t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2015-classification.tif")
 # t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/Downloads/landcover-2020-classification.tif")
-t1 <- terra::rast("/home/claire/Downloads/landcover-2010-classification.tif")
-t2 <- terra::rast("/home/claire/Downloads/landcover-2015-classification.tif")
-t3 <- terra::rast("/home/claire/Downloads/landcover-2020-classification.tif")
+# t1 <- terra::rast("/home/claire/Downloads/landcover-2010-classification.tif")
+# t2 <- terra::rast("/home/claire/Downloads/landcover-2015-classification.tif")
+# t3 <- terra::rast("/home/claire/Downloads/landcover-2020-classification.tif")
 t_ls <- list(t1, t2, t3)
 qc <- st_transform(qc, st_crs(t1))
 
@@ -164,12 +164,12 @@ lapply(t_treat, plot)
 # writeRaster(t_treat[[2]], "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015.tif")
 # writeRaster(t_treat[[3]], "/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020.tif")
 
+t1 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
+t2 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
+t3 <- terra::rast("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
 # t1 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
 # t2 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
 # t3 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
-t1 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2010_6623.tif")
-t2 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2015_6623.tif")
-t3 <- terra::rast("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/couverture_terre_2020_6623.tif")
 
 t_treat <- list(t1, t2, t3)
 
@@ -190,6 +190,8 @@ final <- rbind(final, f2020)
 final$cat[final$value %in% c(1, 2, 5, 6)] <- "forest"
 final$cat[final$value %in% c(1, 2, 5, 6)] <- "forest"
 final$cat[final$value %in% c(1, 2, 5, 6)] <- "forest"
+final$cat[final$value %in% c(8, 11)] <- "shrubland"
+final$cat[final$value %in% c(10, 12)] <- "grassland"
 final$cat[final$value == 13] <- "moorland"
 final$cat[final$value == 15] <- "cropland"
 final$cat[final$value == 14] <- "wetland"
@@ -198,10 +200,10 @@ final$cat[final$value == 17] <- "urban"
 final$cat[final$value == 18] <- "water"
 final$cat[final$value == 19] <- "snow_ice"
 
-final2 <- final[!is.na(final$cat), ]
+# final2 <- final[!is.na(final$cat), ]
 
-# write.table(final2, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire.txt")
-final2 <- read.table("/home/claire/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire_6623.txt")
+write.table(final, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire.txt")
+final2 <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire.txt")
 
 final3 <- final2 |>
     group_by(year, cat) |>
