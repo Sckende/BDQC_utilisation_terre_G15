@@ -7,6 +7,8 @@ path <- paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/MELCCFP_Utilis
 map <- rast(path)
 map
 
+disag <- disagg(map, fact = 3) # to obtain 10x10 res ?
+
 map_proj <- project(map, "EPSG:6623")
 levels(map)
 cats <- cats(map)

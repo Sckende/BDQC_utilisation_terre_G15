@@ -50,23 +50,13 @@ library(ggplot2)
 
 ## Résumé méthodologique 
 
-Somme des superficies par classe d’utilisation des terres au 5 ans, de 2000 à 2020. Les superficies seront rapportées à la surface totale du Québec se situant sous le 60éme parallèle afin d’obtenir une proportion.  
+Somme des superficies par classe d’utilisation des terres à la résolution temporelle disponible selon les données utilisées. Les superficies seront rapportées à la surface totale du Québec afin d’obtenir une proportion.  
 Un traitement spécial sera fait pour obtenir une classification des milieux humides la plus inclusive possible en agrégant les types de forêts humides et terres humides en une catégorie unique.  
 
 ## Type de méthodologie 
 
 Valeur exacte rapportée 
 
-## Limitations 
-
-- Données disponibles uniquement sous le 60e parallèle 
-- Création de nouvelles classes d’utilisation des terres au cours de la série temporelle – Les nouvelles classes seront retirées lors du calcul de l’indicateur 
-- Sous-divisions manquantes pour certaines classes - par exemple, pas de sous-divisions par type de forêts pour la classe forêts. 
-- En général, dissocier les erreurs de classification dans les 
-
-## Incertitude 
-
-Aucune à rapporter 
   
 # Données accessibles
 
@@ -78,11 +68,10 @@ Aucune à rapporter
 | 2010, 2015, 2020 Land cover Canada                                        | Canada Center for Remote Sensing [lien](https://open.canada.ca/data/en/dataset/ee1580ab-a23d-4f86-a09b-79763677eb47)                                                                                                                                                                                                                                         |
 
 # Description des données  
-
 ## Utilisation du territoire par Données Québec  
 ### Description
 
-Ces données ont été produites pour répondre au besoin du MELCC afin de remplir leurs mandats de conservation et de suivi de l’état de l’environnement. Il s’agit d’un assemblage de plusieurs sources de données (21 sources pour la dernière version) dont la précision et la représentativité peuvent fluctuer en fonction des régions.  
+Ces données ont été produites pour répondre au besoin du MELCCFP afin de remplir leurs mandats de conservation et de suivi de l’état de l’environnement. Il s’agit d’un assemblage de plusieurs sources de données (21 sources pour la dernière version) dont la précision et la représentativité peuvent fluctuer en fonction des régions.  
 
 
 | Spécifications  | Temporelle                                   | Spatiale                                   |
@@ -121,6 +110,29 @@ df3 <- df2 |>
 
 p <- ggplot(data = df3, aes(x = year, y = area_km2, color = land_type)) +
     geom_line(linewidth = 1)
+
+df3_ls <- split(df3, df3$land_type)
+transp <- data.frame(year = c(2012:2014, 2016, 2018, 2019))
+transp$Agricole <- c(df3$area_km2[df3$land_type == "Agricole"], NA)
+transp$Anthropique <- df3$area_km2[df3$land_type == "Anthropique"]
+transp$Aquatique <- df3$area_km2[df3$land_type == "Aquatique"]
+transp$Coupe <- c(df3$area_km2[df3$land_type == "Coupes et régénérations"], NA)
+transp$Forestier <- df3$area_km2[df3$land_type == "Forestier"]
+transp$Humide <- df3$area_km2[df3$land_type == "Humide"]
+transp$Lande <- df3$area_km2[df3$land_type == "Sols nus et landes"]
+
+### ==> REPRENDRE ICI
+
+
+length(df3_ls)
+pl <- plot_ly(data = as.data.frame(df3_ls[[1]]), name = "Agricole", x = ~year, y = ~area_km2, type = "scatter", mode = "lines")
+pl <- pl %>% add_trace(y = ~area_km2, name = nm)
+
+for (i in 2:length(df3_ls)) {
+    dt <- as.data.frame(df3_ls[[i]])
+    nm <- unique(dt$land_type)
+    pl <- add_trace(p = pl, y = ~area_km2, name = nm)
+}
 ```
 ### Visualisation
 
@@ -133,7 +145,7 @@ print(p)
 - changement de méthodologie (définition de catégories) et de résolution des cartes au cours du temps
  
 ## Cartographie de l’occupation des sols des Basses-Terres du Saint-Laurent par Données Québec 
-
+### Description
 Ce jeu de données représente l’état des milieux naturels en 2014 ou à une date plus récente (mise à jour le 26 juin 2023) et a été produit dans le cadre du Plan d’action Saint-Laurent pour l’élaboration d’un plan intégré de conservation des milieux naturels et de la biodiversité. L’unité minimale des polygones utilisés est de 0.5 ha. La base de données représente le fruit de l’agrégation et du traitement (dont de la photo-interprétation) de données issues de plusieurs sources : base de données des cultures assurées (Financière agricole du Québec), base de données topographiques du Québec, cadre de référence hydrographique du Québec (MDDELCC), cartographie des cultures au Canada (Agriculture et Agroalimentaire Canada), cartographie détaillée des milieux humides (CIC et MDDELCC), réseau hydrographique national (Ressources naturelles Canada), système d’information écoforestière (MRNF) et système de référence linéaire (Transport Québec). 
 
 | Spécifications  | Temporelle  | Spatiale                        |
@@ -247,10 +259,17 @@ p <- ggplot(data = df_sum, aes(x = year, y = area, color = class)) +
 print(p)
 ```
 
-Cf indicateur par régions  
+**Cf indicateur par régions**  
+
+### Limitations
+- Données disponibles uniquement sous le 60e parallèle 
+- Création de nouvelles classes d’utilisation des terres au cours de la série temporelle – Les nouvelles classes seront retirées lors du calcul de l’indicateur 
+- Sous-divisions manquantes pour certaines classes - par exemple, pas de sous-divisions par type de forêts pour la classe forêts. 
+- En général, dissocier les erreurs de classification dans les 
+
 
 ## Couverture terrestre par Centre Canadien de Télédétection  
-
+### Description
 Ce jeu de données, à l’échelle du Canada, est produit à partir des observations des capteurs Landsat Operational Land Imager, avec une exactitude de 86.9% sans disparité spatiale marquée.  
 
 | Spécifications  | Temporelle  | Spatiale                      |
@@ -296,4 +315,5 @@ print(p)
 ```
 
 ### Limitations
+- changement de classification au cours du temps (à vérifier)
 
