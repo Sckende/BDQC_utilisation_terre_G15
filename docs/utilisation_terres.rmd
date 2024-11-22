@@ -82,8 +82,8 @@ Ces données ont été produites pour répondre au besoin du MELCCFP afin de rem
 ### Traitement des catégories 
 ```{r data_treat_melccfp, include = FALSE}
 df <- data.frame()
-for (y in c(2013, 2014, 2016, 2019, 2020)) {
-    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_3/MELCCFP_pix_per_land_type_", y, "_version_10x10res.txt"))
+for (y in c(2012:2014, 2016, 2018:2020)) {
+    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_2/MELCCFP_pix_per_land_type_", y, "_version2.txt"))
     df <- rbind(df, t)
 }
 df$area_km2 <- df$area / 1000000
@@ -93,7 +93,7 @@ df$land_type[df$land_type %in% c("Coupe et regénération", "Coupe et régénér
 df$land_type[df$land_type %in% c("Sol nu et lande", "Sol nus et landes")] <- "Sols nus et landes"
 
 cat <- data.frame(categories = unique(df$land_type))
-cat$use <- c("non", rep("oui", 6), "non", "oui")
+cat$use <- c("non", "oui", "non", rep("oui", 2), "non", "oui", "non", "oui")
 ```
 ```{r MELCCFP_cat, echo = FALSE}
 kable(cat,
@@ -103,36 +103,17 @@ kable(cat,
 ```
 ```{r MELCCFP_viz, echo = FALSE}
 # retrait des categories non souhaitees
-df2 <- df[!df$land_type %in% c(NA, "Non classifié"), ]
+df2 <- df[!df$land_type %in% c(NA, "Non classifié", "Sols nus et landes", "Coupes et régénérations"), ]
 df3 <- df2 |>
     group_by(year, land_type) |>
     summarise(area_km2 = sum(area_km2))
 
 p <- ggplot(data = df3, aes(x = year, y = area_km2, color = land_type)) +
-    geom_line(linewidth = 1)
-
-df3_ls <- split(df3, df3$land_type)
-transp <- data.frame(year = c(2012:2014, 2016, 2018, 2019))
-transp$Agricole <- c(df3$area_km2[df3$land_type == "Agricole"], NA)
-transp$Anthropique <- df3$area_km2[df3$land_type == "Anthropique"]
-transp$Aquatique <- df3$area_km2[df3$land_type == "Aquatique"]
-transp$Coupe <- c(df3$area_km2[df3$land_type == "Coupes et régénérations"], NA)
-transp$Forestier <- df3$area_km2[df3$land_type == "Forestier"]
-transp$Humide <- df3$area_km2[df3$land_type == "Humide"]
-transp$Lande <- df3$area_km2[df3$land_type == "Sols nus et landes"]
-
-### ==> REPRENDRE ICI
-
-
-length(df3_ls)
-pl <- plot_ly(data = as.data.frame(df3_ls[[1]]), name = "Agricole", x = ~year, y = ~area_km2, type = "scatter", mode = "lines")
-pl <- pl %>% add_trace(y = ~area_km2, name = nm)
-
-for (i in 2:length(df3_ls)) {
-    dt <- as.data.frame(df3_ls[[i]])
-    nm <- unique(dt$land_type)
-    pl <- add_trace(p = pl, y = ~area_km2, name = nm)
-}
+    geom_line(linewidth = 1) +
+    theme(legend.position = "none") +
+    scale_x_continuous(breaks = seq(2012, 2020, by = 1)) +
+    theme(axis.title.x = element_blank()) +
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4"))
 ```
 ### Visualisation
 
@@ -189,19 +170,21 @@ cat$use <- ifelse(cat$cat %in% c(
     "Land Converted to Cropland",
     "Land Converted to Annual Cropland",
     "Snow and Ice",
-    "Newly-Detected Road <10 years"
+    "Newly-Detected Road <10 years",
+    "Grassland Unmanaged",
+    "Other Land"
 ), "non", "oui")
 
 # Groupement des classes
 cat$class <- NA
 
-cat$class[cat$cat %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forest"
+cat$class[cat$cat %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forestier"
 
-cat$class[cat$cat %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Settlement"
-cat$class[cat$cat %in% c("Cropland")] <- "Cropland"
+cat$class[cat$cat %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Anthropique"
+cat$class[cat$cat %in% c("Cropland")] <- "Agricole"
 cat$class[cat$cat %in% c("Grassland Unmanaged")] <- "Grassland"
-cat$class[cat$cat %in% c("Wetland")] <- "Wetland"
-cat$class[cat$cat %in% c("Water")] <- "Water"
+cat$class[cat$cat %in% c("Wetland")] <- "Humide"
+cat$class[cat$cat %in% c("Water")] <- "Aquatique"
 cat$class[cat$cat %in% c("Other Land")] <- "Other Land"
 
 cat$class[is.na(cat$class)] <- "-"
@@ -227,20 +210,22 @@ df2 <- df[!df$land_type %in% c(
     "Land Converted to Cropland",
     "Land Converted to Annual Cropland",
     "Snow and Ice",
-    "Newly-Detected Road <10 years"
+    "Newly-Detected Road <10 years",
+    "Grassland Unmanaged",
+    "Other Land"
 ), ]
 
 # groupement en classe
 df2$class <- NA
 
-df2$class[df2$land_type %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forest"
+df2$class[df2$land_type %in% c("Forest", "Forest Wetland", "Forest Regenerating after Harvest <20 years", "Forest Regenerating after Fire <20 years", "Forest Wetland Regenerating after Harvest <20 years")] <- "Forestier"
 
-df2$class[df2$land_type %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Settlement"
-df2$class[df2$land_type %in% c("Cropland")] <- "Cropland"
-df2$class[df2$land_type %in% c("Grassland Unmanaged")] <- "Grassland"
-df2$class[df2$land_type %in% c("Wetland")] <- "Wetland"
-df2$class[df2$land_type %in% c("Water")] <- "Water"
-df2$class[df2$land_type %in% c("Other Land")] <- "Other Land"
+df2$class[df2$land_type %in% c("Settlement", "Settlement Forest", "Vegetated Settlement", "High Reflectance Settlement", "Very High Reflectance Settlement", "Roads")] <- "Anthropique"
+df2$class[df2$land_type %in% c("Cropland")] <- "Agricole"
+# df2$class[df2$land_type %in% c("Grassland Unmanaged")] <- "Grassland"
+df2$class[df2$land_type %in% c("Wetland")] <- "Humide"
+df2$class[df2$land_type %in% c("Water")] <- "Aquatique"
+# df2$class[df2$land_type %in% c("Other Land")] <- "Other Land"
 
 df_sum <- df2 %>%
     group_by(class, year) %>%
@@ -248,15 +233,19 @@ df_sum <- df2 %>%
 
 df_sum$area <- (df_sum$sum * 30 * 30) / 1000000
 
-p <- ggplot(data = df_sum, aes(x = year, y = area, color = class)) +
-    geom_line(linewidth = 1)
+p2 <- ggplot(data = df_sum, aes(x = year, y = area, color = class)) +
+    geom_line(linewidth = 1) +
+    theme(axis.title = element_blank()) +
+    scale_x_continuous(breaks = seq(200, 2020, by = 5)) +
+    theme(axis.text.y = element_blank(), axis.ticks = element_blank(), legend.position = "none") +
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4"))
 ```
 
 
 ### Visualisation
 
 ```{r AAC_plot, echo = FALSE}
-print(p)
+print(p2)
 ```
 
 **Cf indicateur par régions**  
@@ -285,35 +274,99 @@ Ce jeu de données, à l’échelle du Canada, est produit à partir des observa
 | 2        | Forêt de conifères (taiga) ou subpolaire               | oui | forest      |
 | 5        | Forêt feuillue tempérée ou subpolaire                  | oui | forest      |
 | 6        | Forêt mixte                                            | oui | forest      |
-| 8        | Arbustaie tempérée ou subpolaire                       | oui | shrubland   |
-| 10       | Prairie tempérée ou subpolaire                         | oui | grassland   |
-| 11       | Arbustaie à lichens et à mousses polaire ou subpolaire | oui | shrubland   |
-| 12       | Prairie à lichens et à mousses polaire ou subpolaire   | oui | grassland   |
-| 13       | Lande à lichens et à mousses polaire ou subpolaire     | oui | moorland    |
+| 8        | Arbustaie tempérée ou subpolaire                       | non | shrubland   |
+| 10       | Prairie tempérée ou subpolaire                         | non | grassland   |
+| 11       | Arbustaie à lichens et à mousses polaire ou subpolaire | non | shrubland   |
+| 12       | Prairie à lichens et à mousses polaire ou subpolaire   | non | grassland   |
+| 13       | Lande à lichens et à mousses polaire ou subpolaire     | non | moorland    |
 | 14       | Terre humide                                           | oui | wetland     |
 | 15       | Terre agricole                                         | oui | cropland    |
-| 16       | Terre stérile                                          | oui | barren_land |
+| 16       | Terre stérile                                          | non | barren_land |
 | 17       | Milieu urbain                                          | oui | urban       |
 | 18       | Eau                                                    | oui | water       |
-| 19       | Neige et glace                                         | oui | snow_ice    |
+| 19       | Neige et glace                                         | non | snow_ice    |
 
 ### Visualisation
 
 ```{r CCT_viz, include = FALSE}
 df <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/Centre_canadien_teledetection_treat/freq_couv_territoire.txt")
 
+df <- df[df$cat %in% c("forest", "wetland", "cropland", "urban", "water"), ]
+
 df2 <- df |>
     group_by(year, cat) |>
     summarise(tot_pix = sum(count))
 df2$area_km2 <- (df2$tot_pix * 30 * 30) / 1000000
 
-p <- ggplot(data = df2, aes(x = year, y = area_km2, color = cat)) +
-    geom_line(linewidth = 1)
+df2$cat[df2$cat == "cropland"] <- "Agricole"
+df2$cat[df2$cat == "urban"] <- "Anthropique"
+df2$cat[df2$cat == "water"] <- "Aquatique"
+df2$cat[df2$cat == "forest"] <- "Forestier"
+df2$cat[df2$cat == "wetland"] <- "Humide"
+
+p3 <- ggplot(data = df2, aes(x = year, y = area_km2, color = cat)) +
+    geom_line(linewidth = 1) +
+    scale_x_continuous(breaks = seq(2000, 2020, by = 5)) +
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4"))
 ```
 ```{r CCT_plot, echo = FALSE}
-print(p)
+print(p3)
 ```
 
 ### Limitations
 - changement de classification au cours du temps (à vérifier)
 
+
+
+```{r plot_comp, echo = FALSE}
+# Multiple plot function
+#
+# ggplot objects can be passed in ..., or to plotlist (as a list of ggplot objects)
+# - cols:   Number of columns in layout
+# - layout: A matrix specifying the layout. If present, 'cols' is ignored.
+#
+# If the layout is something like matrix(c(1,2,3,3), nrow=2, byrow=TRUE),
+# then plot 1 will go in the upper left, 2 will go in the upper right, and
+# 3 will go all the way across the bottom.
+#
+multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL) {
+    library(grid)
+
+    # Make a list from the ... arguments and plotlist
+    plots <- c(list(...), plotlist)
+
+    numPlots <- length(plots)
+
+    # If layout is NULL, then use 'cols' to determine layout
+    if (is.null(layout)) {
+        # Make the panel
+        # ncol: Number of columns of plots
+        # nrow: Number of rows needed, calculated from # of cols
+        layout <- matrix(seq(1, cols * ceiling(numPlots / cols)),
+            ncol = cols, nrow = ceiling(numPlots / cols)
+        )
+    }
+
+    if (numPlots == 1) {
+        print(plots[[1]])
+    } else {
+        # Set up the page
+        grid.newpage()
+        pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+        # Make each plot, in the correct location
+        for (i in 1:numPlots) {
+            # Get the i,j matrix positions of the regions that contain this subplot
+            matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+            print(plots[[i]], vp = viewport(
+                layout.pos.row = matchidx$row,
+                layout.pos.col = matchidx$col
+            ))
+        }
+    }
+}
+
+multiplot(p, p2, cols = 2)
+print(p3)
+```
