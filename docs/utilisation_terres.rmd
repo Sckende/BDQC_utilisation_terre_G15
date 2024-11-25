@@ -31,6 +31,7 @@ library(stringr)
 library(knitr)
 library(plotly)
 library(ggplot2)
+library(terra)
 
 # Data
 # synth <- readRDS("C:/Users/ccjuhasz/Desktop/SMAC/Projet_publi/6-PNB_isotopes/DATA/GitHub_Pages/ISOSCAPE_synthese_par_ind.rds")
@@ -82,18 +83,29 @@ Ces données ont été produites pour répondre au besoin du MELCCFP afin de rem
 ### Traitement des catégories 
 ```{r data_treat_melccfp, include = FALSE}
 df <- data.frame()
-for (y in c(2012:2014, 2016, 2018:2020)) {
-    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_2/MELCCFP_pix_per_land_type_", y, "_version2.txt"))
+# for (y in c(2012:2014, 2016, 2018:2020)) {
+#     t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_2/MELCCFP_pix_per_land_type_", y, "_version2.txt"))
+#     df <- rbind(df, t)
+# }
+
+for (y in c(2013:2014, 2016, 2019:2020)) {
+    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_3/MELCCFP_pix_per_land_type_", y, "_version_10x10res.txt"))
     df <- rbind(df, t)
 }
+
 df$area_km2 <- df$area / 1000000
 
+pix_tot <- df |>
+    group_by(year) |>
+    summarise(sum_pix = sum(pix_num))
+pix_tot$area_tot <- (pix_tot$sum_pix * 10 * 10) / 1000000
 # traitement des doublons
 df$land_type[df$land_type %in% c("Coupe et regénération", "Coupe et régénération")] <- "Coupes et régénérations"
 df$land_type[df$land_type %in% c("Sol nu et lande", "Sol nus et landes")] <- "Sols nus et landes"
 
 cat <- data.frame(categories = unique(df$land_type))
-cat$use <- c("non", "oui", "non", rep("oui", 2), "non", "oui", "non", "oui")
+# cat$use <- c("non", "oui", "non", rep("oui", 2), "non", "oui", "non", "oui")
+cat$use <- c("non", "non", "oui", "non", rep("oui", 3))
 ```
 ```{r MELCCFP_cat, echo = FALSE}
 kable(cat,
@@ -233,12 +245,22 @@ df_sum <- df2 %>%
 
 df_sum$area <- (df_sum$sum * 30 * 30) / 1000000
 
-p2 <- ggplot(data = df_sum, aes(x = year, y = area, color = class)) +
+# ----- #
+pix_tot <- df_sum |>
+    group_by(year) |>
+    summarise(sum_pix = sum(sum))
+pix_tot$area_tot <- (pix_tot$sum_pix * 30 * 30) / 1000000
+
+df_sum2 <- left_join(df_sum, pix_tot, by = c("year"))
+df_sum2$prop <- (df_sum2$area * 100) / df_sum2$area_tot
+
+p2 <- ggplot(data = df_sum2, aes(x = year, y = prop, color = class)) +
     geom_line(linewidth = 1) +
     theme(axis.title = element_blank()) +
     scale_x_continuous(breaks = seq(200, 2020, by = 5)) +
     theme(axis.text.y = element_blank(), axis.ticks = element_blank(), legend.position = "none") +
-    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4"))
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4")) +
+    ggtitle("Agriculture et Agroalimentaire Canada")
 ```
 
 
@@ -304,19 +326,32 @@ df2$cat[df2$cat == "water"] <- "Aquatique"
 df2$cat[df2$cat == "forest"] <- "Forestier"
 df2$cat[df2$cat == "wetland"] <- "Humide"
 
-p3 <- ggplot(data = df2, aes(x = year, y = area_km2, color = cat)) +
+# ----- #
+pix_tot <- df2 |>
+    group_by(year) |>
+    summarise(sum_pix = sum(tot_pix))
+pix_tot$area_tot <- (pix_tot$sum_pix * 30 * 30) / 1000000
+
+df_sum2 <- left_join(df2, pix_tot, by = c("year"))
+df_sum2$prop <- (df_sum2$area_km2 * 100) / df_sum2$area_tot
+
+p3 <- ggplot(data = df_sum2, aes(x = year, y = prop, color = cat)) +
     geom_line(linewidth = 1) +
     scale_x_continuous(breaks = seq(2000, 2020, by = 5)) +
-    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4"))
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4")) +
+    ggtitle("Centre Canadien de Télédétection") +
+    theme(legend.position = "bottom")
+
+p3_nolegend <- ggplot(data = df_sum2, aes(x = year, y = prop, color = cat)) +
+    geom_line(linewidth = 1) +
+    scale_x_continuous(breaks = seq(2000, 2020, by = 5)) +
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4")) +
+    ggtitle("Centre Canadien de Télédétection") +
+    theme(legend.position = "none", axis.title.x = element_blank())
 ```
 ```{r CCT_plot, echo = FALSE}
 print(p3)
 ```
-
-### Limitations
-- changement de classification au cours du temps (à vérifier)
-
-
 
 ```{r plot_comp, echo = FALSE}
 # Multiple plot function
@@ -367,6 +402,5 @@ multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL) {
     }
 }
 
-multiplot(p, p2, cols = 2)
-print(p3)
+multiplot(p3_nolegend, p2, cols = 2)
 ```
