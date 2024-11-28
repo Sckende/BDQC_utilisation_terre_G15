@@ -239,6 +239,11 @@ df2$class[df2$land_type %in% c("Wetland")] <- "Humide"
 df2$class[df2$land_type %in% c("Water")] <- "Aquatique"
 # df2$class[df2$land_type %in% c("Other Land")] <- "Other Land"
 
+df2$class2[df2$class == "Anthropique"] <- "Anthropique"
+df2$class2[is.na(df2$class2)] <- "Naturel"
+
+# ----- #
+# For first class #
 df_sum <- df2 %>%
     group_by(class, year) %>%
     summarise(sum = sum(pix_num))
@@ -246,21 +251,46 @@ df_sum <- df2 %>%
 df_sum$area <- (df_sum$sum * 30 * 30) / 1000000
 
 # ----- #
+# For second class #
+df_sum2 <- df2 %>%
+    group_by(class2, year) %>%
+    summarise(sum = sum(pix_num))
+
+df_sum2$area <- (df_sum2$sum * 30 * 30) / 1000000
+
+# ----- #
 pix_tot <- df_sum |>
     group_by(year) |>
     summarise(sum_pix = sum(sum))
 pix_tot$area_tot <- (pix_tot$sum_pix * 30 * 30) / 1000000
 
-df_sum2 <- left_join(df_sum, pix_tot, by = c("year"))
-df_sum2$prop <- (df_sum2$area * 100) / df_sum2$area_tot
+# ----- #
+df_sum11 <- left_join(df_sum, pix_tot, by = c("year"))
+df_sum11$prop <- (df_sum11$area * 100) / df_sum11$area_tot
 
-p2 <- ggplot(data = df_sum2, aes(x = year, y = prop, color = class)) +
+# ----- #
+df_sum22 <- left_join(df_sum2, pix_tot, by = c("year"))
+df_sum22$prop <- (df_sum22$area * 100) / df_sum22$area_tot
+
+p2 <- ggplot(data = df_sum11, aes(x = year, y = prop, color = class)) +
     geom_line(linewidth = 1) +
     theme(axis.title = element_blank()) +
     scale_x_continuous(breaks = seq(200, 2020, by = 5)) +
     theme(axis.text.y = element_blank(), axis.ticks = element_blank(), legend.position = "none") +
     scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4")) +
     ggtitle("Agriculture et Agroalimentaire Canada")
+
+p22 <- ggplot(data = df_sum22, aes(x = year, y = prop, color = class2)) +
+    geom_line(linewidth = 1) +
+    # theme(axis.title = element_blank()) +
+    scale_x_continuous(breaks = seq(200, 2020, by = 5)) +
+    # theme(axis.text.y = element_blank(), axis.ticks = element_blank(), legend.position = "none") +
+    scale_color_manual(values = c("chocolate4", "brown2", "deepskyblue3", "darkolivegreen", "aquamarine4")) +
+    ggtitle("Agriculture et Agroalimentaire Canada")
+```
+
+```{r AAC_viz_region}
+dt <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use.txt")
 ```
 
 
