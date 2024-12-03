@@ -78,7 +78,7 @@ habitat_plot
 # ggsave(glue::glue("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/fake_g15_util_terres.tif"), plot = habitat_plot, width = 575, height = 360, units = "px", dpi = 100)
 
 ### Creation of interactive map with lang use per region ###
-qc <- st_read("/home/claire/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
+qc <- st_read("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
 plot(st_geometry(qc))
 qc_ll <- st_transform(qc, st_crs("EPSG:4326"))
 

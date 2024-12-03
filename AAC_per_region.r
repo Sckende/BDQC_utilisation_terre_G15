@@ -1,22 +1,96 @@
 library(stringr)
 library(ggplot2)
 library(dplyr)
+library(sf)
+library(terra)
 
-sup_qc <- 1542056 # km2 from wikipedia
+##########
+#### ----- ####
+#### Analyse des donnees brutes ####
+#### ----- ####
+reg_ecol <- st_read("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
+
+coll_clip <- list()
+
+for (y in seq(2000, 2020, 5)) {
+    # for (y in c(2020)) {
+    u17 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/AAC_land_use_raw/", y, "/LU", y, "_u17/LU", y, "_u17_v4_2022_02.tif"))
+    u18 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/AAC_land_use_raw/", y, "/LU", y, "_u18/LU", y, "_u18_v4_2022_02.tif"))
+    u19 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/AAC_land_use_raw/", y, "/LU", y, "_u19/LU", y, "_u19_v4_2022_02.tif"))
+    u20 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/AAC_land_use_raw/", y, "/LU", y, "_u20/LU", y, "_u20_v4_2022_02.tif"))
+    u21 <- rast(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/AAC_land_use_raw/", y, "/LU", y, "_u21/LU", y, "_u21_v4_2022_02.tif"))
+
+    reg_coll <- sprc(u17, u18, u19, u20, u21)
+    print(paste0("--------------------> année ", y))
+
+    for (reg in 1:nrow(reg_ecol)) {
+        test <- reg_ecol[reg, ]
+        eco_name <- test$NOM_PROV_N
+        print(paste0("----------> ", eco_name))
+        for (i in 1:5) {
+            map_m <- NULL
+
+            tryCatch(
+                {
+                    print("-----> conversion")
+                    test_proj <- st_transform(test, st_crs(reg_coll[i]))
+                    print("-----> crop & mask")
+                    map_c <- crop(reg_coll[i], test_proj)
+                    map_m <- mask(map_c, test_proj)
+                    varnames(map_m) <- paste0(varnames(map_m), "_", eco_name)
+                },
+                error = function(e) {
+                    print("No overlap")
+                }
+            )
+            # print(map_m)
+            coll_clip <- c(coll_clip, map_m)
+        }
+    }
+}
+names(coll_clip) <- unlist(lapply(coll_clip, varnames))
+
+# print(length(coll_clip))
+# print(str(coll_clip))
+# print(coll_clip)
+
+final <- data.frame()
+
+for (i in 1:length(coll_clip)) {
+    fq <- terra::freq(coll_clip[[i]])
+    fq$info <- names(coll_clip)[i]
+
+    final <- rbind(final, fq)
+}
+
+write.table(final, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use_local_compute.txt")
+
+##########
+#### ----- ####
+#### Visualisation a partir de l'analyse des donnees brutes ####
+#### ----- ####
+
+# sup_qc <- 1542056 # km2 from wikipedia
 qc <- st_read("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
-dt <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use.txt")
+# dt <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_raw_land_use_per_region.txt")
+# dt <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use.txt")
+dt <- read.table("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use_local_compute.txt")
+# dt <- dt[!is.na(dt$value), ]
 head(dt)
 info_ls <- strsplit(dt$info, "_")
 
 inf <- lapply(info_ls, function(x) {
     year <- substring(x[1], 3, 6)
-    reg <- x[7]
+    # reg <- x[7]
+    reg <- x[6]
 
     obj <- data.frame(year, reg)
 })
 info <- do.call("rbind", inf)
 
 dt2 <- cbind(dt, info)
+
+sup_qc_km2 <- sum(dt2$count[dt2$year == 2000], na.rm = TRUE) * 30 * 30 / 1000000
 
 # ---- #
 # class treatment
@@ -48,26 +122,50 @@ dt3$class[dt3$value %in% c("Cropland")] <- "Agricole"
 dt3$class[dt3$value %in% c("Wetland")] <- "Humide"
 dt3$class[dt3$value %in% c("Water")] <- "Aquatique"
 # dt3$class[dt3$value %in% c("Other Land")] <- "Other Land"
+
 dt3 <- dt3[!is.na(dt3$class), ]
 
 # groupement en classe deuxieme niveau
 dt3$class2[dt3$class == "Anthropique"] <- "Anthropique"
 dt3$class2[is.na(dt3$class2)] <- "Naturel"
 
-df_colors <- data.frame(class = unique(dt3$class), color = c("brown2", "chocolate4", "deepskyblue3", "darkolivegreen", "aquamarine4"))
+df_colors <- data.frame(class = unique(dt3$class), color = c("brown2", "deepskyblue3", "darkolivegreen", "chocolate4", "aquamarine4"))
 df_colors2 <- data.frame(class2 = unique(dt3$class2), color = c("brown2", "aquamarine4"))
 
 qc_small <- as.data.frame(qc[, c("FID01", "NOM_PROV_N")])
 qc_small <- qc_small[, c(1, 2)]
-dt3 <- left_join(dt2, qc_small, by = join_by("reg" == "NOM_PROV_N"))
+dt3 <- left_join(dt3, qc_small, by = join_by("reg" == "NOM_PROV_N"))
 dt3 <- dt3[!is.na(dt3$count), ]
 
-area_tot <- dt3 |>
-    group_by(year) |>
-    summarise(pix_tot = sum(count), area_tot_km2 = sum(count) * 30 * 30 / 1000000)
+#### ----- ####
+#### Calcul de proportion pour le QC ####
+#### ----- ####
 
-# ----- #
-# Viz per region per class1
+# ici prendre la proportion en fonction du nombre de pixels total par region ?
+per_class <- dt3 |>
+    group_by(class, year) |>
+    summarize(sum_pix = sum(count))
+
+per_class$prop <- (per_class$sum_pix * 30 * 30 / 1000000) * 100 / sup_qc_km2
+
+per_class |> print(n = 25)
+
+#### Visualisation ####
+myColors <- df_colors$color
+names(myColors) <- df_colors$class
+ggplot(per_class, aes(x = as.numeric(year), y = prop, color = class)) +
+    geom_line(linewidth = 1.5) +
+    scale_color_manual(values = myColors) +
+    xlab("Année") +
+    ylab("Proportion (%)")
+
+#### ----- ####
+#### Calcul de proportion par region per class ####
+#### ----- ####
+dt3 |>
+    group_by(reg, year) |>
+    summarize(count_pix = sum(count)) |>
+    print(n = 100) ### WARNING ! Reprendre ici ! Pas le même nombre de pixels par region !!! ###
 
 dt_reg <- split(dt3, dt3$reg)
 length(dt_reg) # 20 regions
