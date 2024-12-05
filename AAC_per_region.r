@@ -63,7 +63,7 @@ for (i in 1:length(coll_clip)) {
     final <- rbind(final, fq)
 }
 
-write.table(final, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use_local_compute.txt")
+# write.table(final, "/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/AAC_final_per_region_land_use_local_compute.txt")
 
 ##########
 #### ----- ####
@@ -90,7 +90,18 @@ info <- do.call("rbind", inf)
 
 dt2 <- cbind(dt, info)
 
+#### Superficie du Qc ####
+# dt2 |> group_by(year) |> summarize(tot_pix = sum(count, na.rm = TRUE))
 sup_qc_km2 <- sum(dt2$count[dt2$year == 2000], na.rm = TRUE) * 30 * 30 / 1000000
+
+#### Superficie par region ####
+# sup_per_region <- dt2 |> group_by(reg, year) |> summarize(sum_pix = sum(count, na.rm = T))
+sup_per_region <- dt2 |>
+    filter(year == 2000) |>
+    group_by(reg, year) |>
+    summarize(sum_pix = sum(count, na.rm = T))
+sup_per_region$area_km2 <- sup_per_region$sum_pix * 30 * 30 / 1000000
+sup_per_region |> print(n = 100)
 
 # ---- #
 # class treatment
@@ -141,7 +152,6 @@ dt3 <- dt3[!is.na(dt3$count), ]
 #### Calcul de proportion pour le QC ####
 #### ----- ####
 
-# ici prendre la proportion en fonction du nombre de pixels total par region ?
 per_class <- dt3 |>
     group_by(class, year) |>
     summarize(sum_pix = sum(count))
@@ -160,139 +170,150 @@ ggplot(per_class, aes(x = as.numeric(year), y = prop, color = class)) +
     ylab("Proportion (%)")
 
 #### ----- ####
-#### Calcul de proportion par region per class ####
+#### Calcul de proportion par region per class1 ####
 #### ----- ####
-dt3 |>
-    group_by(reg, year) |>
+per_region <- dt3 |>
+    group_by(reg, class, year) |>
     summarize(count_pix = sum(count)) |>
-    print(n = 100) ### WARNING ! Reprendre ici ! Pas le même nombre de pixels par region !!! ###
+    print(n = 100)
 
-dt_reg <- split(dt3, dt3$reg)
+per_region$class_area_km2 <- per_region$count_pix * 30 * 30 / 1000000
+
+per_region2 <- left_join(per_region, sup_per_region[, c("reg", "area_km2")], by = "reg")
+per_region2$prop <- per_region2$class_area_km2 * 100 / per_region2$area_km2
+
+per_region3 <- left_join(per_region2, df_colors, by = "class")
+per_region4 <- left_join(per_region3, qc_small, by = join_by("reg" == "NOM_PROV_N"))
+
+dt_reg <- split(per_region4, per_region2$reg)
 length(dt_reg) # 20 regions
 
-reg_cl1 <- lapply(dt_reg, function(x) {
-    reg <- unique(x$reg)
-
-    j <- x |>
-        group_by(class, year) |>
-        summarise(sum = sum(count))
-    j$reg <- reg
-    j$area_km2 <- (j$sum * 30 * 30) / 1000000
-    j$prop <- (j$area_km2 / sup_qc) * 100
-    j <- left_join(j, df_colors, c("class"))
-    j
-})
-
-reg_cl2 <- lapply(dt_reg, function(x) {
-    reg <- unique(x$reg)
-    j <- x |>
-        group_by(class2, year) |>
-        summarise(sum = sum(count))
-    j$reg <- reg
-    j$area_km2 <- (j$sum * 30 * 30) / 1000000
-    j$prop <- (j$area_km2 / sup_qc) * 100
-    j <- left_join(j, df_colors2, c("class2"))
-    j
-})
-
+# Viz
 x11()
 par(mfrow = c(4, 5))
-# lapply(reg_cl1, function(x){
-# ggplot(x, aes(x = as.numeric(year), y = sum, color = class)) +
-#     geom_line()
-# })
 
-
-
-lapply(reg_cl1, function(x) {
-    max_pix <- max(x$sum)
+lapply(dt_reg, function(x) {
+    max_prop <- max(x$prop)
     x_ls <- split(x, x$class)
     l <- length(x_ls)
-    plot(x_ls[[1]]$year, x_ls[[1]]$sum,
-        ylim = c(0, max_pix + 10),
+    jpeg(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/plots/per_class1/AAC_", unique(x$FID01), "_per_class.jpeg"),
+        res = 300,
+        width = 30,
+        height = 30,
+        pointsize = 20,
+        unit = "cm",
+        bg = "white"
+    )
+    plot(x_ls[[1]]$year, x_ls[[1]]$prop,
+        ylim = c(0, max_prop + 10),
         type = "l", col = unique(x_ls[[1]]$color),
+        lwd = 3,
         bty = "n",
         xlab = "année",
-        ylab = "nombre de pixels",
+        ylab = "Proportion (%)",
         main = unique(x_ls[[1]]$reg)
     )
 
     for (i in 2:l) {
-        lines(x_ls[[i]]$year, x_ls[[i]]$sum,
-            col = unique(x_ls[[i]])$color
+        lines(x_ls[[i]]$year, x_ls[[i]]$prop,
+            col = unique(x_ls[[i]])$color,
+            lwd = 3
         )
     }
+    # legend("top", legend = df_colors$class, lty = 1, col = df_colors$color, horiz = TRUE, bty = "n")
+    dev.off()
 })
 
+#### ----- ####
+#### Calcul de proportion par region per class2 ####
+#### ----- ####
+per_region4$class2 <- NA
+per_region4$class2[per_region4$class == "Anthropique"] <- "Anthropique"
+per_region4$class2[is.na(per_region4$class2)] <- "Naturel"
 
-# ----- #
+per_class2 <- per_region4 |>
+    group_by(reg, class2, year) |>
+    summarize(tot_pix = sum(count_pix))
+per_class2$class_area_km2 <- per_class2$tot_pix * 30 * 30 / 1000000
+per_class21 <- left_join(per_class2, sup_per_region[, c("reg", "area_km2")], by = "reg")
+per_class21$prop <- per_class21$class_area_km2 * 100 / per_class21$area_km2
+per_class22 <- left_join(per_class21, df_colors2, by = "class2")
+per_class23 <- left_join(per_class22, qc_small, by = join_by("reg" == "NOM_PROV_N"))
+
+dt_reg2 <- split(per_class23, per_class23$reg)
+
+# Viz
 x11()
 par(mfrow = c(4, 5))
 
-lapply(reg_cl2, function(x) {
-    max_pix <- max(x$sum)
+lapply(dt_reg2, function(x) {
+    max_prop <- max(x$prop)
     x_ls <- split(x, x$class2)
     l <- length(x_ls)
-    plot(x_ls[[1]]$year, x_ls[[1]]$sum,
-        ylim = c(0, max_pix + 10),
+    # tiff(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/plots/per_class2/AAC_", unique(x$FID01), "_", unique(x$reg), "_per_class2.tiff"),
+    #     res = 300,
+    #     width = 10,
+    #     height = 10,
+    #     pointsize = 5,
+    #     unit = "cm",
+    #     bg = "white"
+    # )
+    plot(x_ls[[1]]$year, x_ls[[1]]$prop,
+        ylim = c(0, max_prop + 10),
         type = "l", col = unique(x_ls[[1]]$color),
         bty = "n",
         xlab = "année",
-        ylab = "nombre de pixels",
+        ylab = "Proportion (%)",
         main = unique(x_ls[[1]]$reg)
     )
 
     for (i in 2:l) {
-        lines(x_ls[[i]]$year, x_ls[[i]]$sum,
+        lines(x_ls[[i]]$year, x_ls[[i]]$prop,
             col = unique(x_ls[[i]])$color
         )
     }
+    legend("top", legend = df_colors2$class2, lty = 1, col = df_colors2$color, horiz = TRUE, bty = "n")
+    # dev.off()
 })
 
-#### Graphic par region ####
-# ----------------------- #
-
-d <- reg_cl1[[5]]
-ggplot(d, aes(x = as.numeric(year), y = prop, color = class)) +
-    geom_line()
-
-
-#### Viz interactive ####
-# -------------------- #
-
+#### ------------------------ ####
+#### Viz map interactive ####
+#### -------------------- ####
+### WARNING ! à faire tourner dans Rstudio car ne fonctionne pas dasn VSCODE ####
 library(lubridate)
 library(ggplot2)
 library(plotly)
 library(sf)
 library(terra)
-st_read("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
+qc <- st_read("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
 plot(st_geometry(qc))
 qc_ll <- st_transform(qc, st_crs("EPSG:4326"))
 
-# p <- ggplot(qc) +
-#   geom_sf()
-# p
-# ggplotly(p) %>%
-#   highlight(
-#     "plotly_hover",
-#     selected = attrs_selected(line = list(color = "black"))
-#   ) %>%
-#   widgetframe::frameWidget()
-
 library(leaflet)
 library(leafpop)
-img <- "/home/claire/Pictures/Screenshots/test.png"
-img2 <- "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Mount_Eden.jpg/640px-Mount_Eden.jpg"
-img3 <- "/home/claire/Desktop/fox.jpg"
-img4 <- "https://miro.medium.com/v2/resize:fit:1400/1*jj818i6pGhnuWjwGOi8v8g.jpeg"
-img5 <- "https://object-arbutus.cloud.computecanada.ca/bq-io/acer/ebv/rs_ebird.tif"
+# img <- "/home/claire/Pictures/Screenshots/test.png"
+# img2 <- "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Mount_Eden.jpg/640px-Mount_Eden.jpg"
+# img3 <- "/home/claire/Desktop/fox.jpg"
+# img4 <- "https://miro.medium.com/v2/resize:fit:1400/1*jj818i6pGhnuWjwGOi8v8g.jpeg"
+# img5 <- "https://object-arbutus.cloud.computecanada.ca/bq-io/acer/ebv/rs_ebird.tif"
+full_path <- list.files("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/plots/per_class1", full.names = TRUE)
 
-qc_ll$graph <- rep(c("https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/Vulpes_vulpes_ssp_fulvus.jpg/800px-Vulpes_vulpes_ssp_fulvus.jpg", "https://shop.wwf.ca/cdn/shop/files/Dmitry-Deshevykh-WWF-Russia_red_fox.jpg?v=1694548960&width=1024", "https://naturecanada.ca/wp-content/uploads/2023/04/Red_Foxes_1980x1080.jpg", "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSyyCOQt9SxqPW_DEGrx2jfxolcRv_xSmeOy6GXrOhlTvJAr9f6R3sawaX-bwNLlaiNfpk&usqp=CAU"), 5)
-p <- ggplot(data = meuse, aes(x = copper, y = cadmium, fill = as.factor(round(elev)))) +
-    geom_point()
-p
+info_ls <- strsplit(list.files("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/AAC/plots/per_class1", full.names = FALSE), "_")
 
-leaflet(qc_ll) %>%
+
+inf <- lapply(info_ls, function(x) {
+    reg <- x[3]
+    id <- x[2]
+
+    obj <- data.frame(id, reg)
+})
+inf2 <- do.call("rbind", inf)
+inf2$path <- full_path
+inf2$id <- as.numeric(inf2$id)
+qc_ll2 <- left_join(qc_ll, inf2[, c("id", "path")], by = join_by("FID01" == "id"))
+qc_ll2$path2 <- "/home/local/USHERBROOKE/juhc3201/Pictures/arctic_fox.jpg"
+
+leaflet(qc_ll2) %>%
     addTiles() %>%
     fitBounds(
         lng1 = -79.76332, # st_bbox(qc)[1],
@@ -307,8 +328,8 @@ leaflet(qc_ll) %>%
         color = "white",
         dashArray = "3",
         fillOpacity = 0.7,
-        layerId = qc_ll$NOM_PROV_N,
-        popup = popupImage(qc_ll$graph),
+        layerId = qc_ll2$NOM_PROV_N,
+        popup = popupImage(qc_ll2$path2),
         # popup = popupImage("/home/local/USHERBROOKE/juhc3201/Pictures/arctic_fox.jpg"),
         # popup = popupGraph(p),
         highlightOptions = highlightOptions(
@@ -319,5 +340,3 @@ leaflet(qc_ll) %>%
             bringToFront = TRUE
         )
     )
-
-# Remplacer foxes par lien local des graphes qui seront enregistres dans une colonne du dataframe final
