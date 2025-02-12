@@ -68,7 +68,7 @@ Valeur exacte rapportée
 | Utilisation des terres                                                    | Agriculture et Agroalimentaire Canada, 2021,  « Séries chronologiques d’utilisation des terres d’AAC : 2000, 2005, 2010, 2015, 2020 », Division de l’agroclimat, de la géomatique et de l’observation de la Terre, Direction générale des sciences et de la technologie [lien](https://ouvert.canada.ca/data/fr/dataset/fa84a70f-03ad-4946-b0f8-a3b481dd5248)  |
 | 2010, 2015, 2020 Land cover Canada                                        | Canada Center for Remote Sensing [lien](https://open.canada.ca/data/en/dataset/ee1580ab-a23d-4f86-a09b-79763677eb47)                                                                                                                                                                                                                                         |
 
-# Description des données  
+# Évolution de la proportion par catégories générales des jeux de données  
 ## Utilisation du territoire par Données Québec  
 ### Description
 
@@ -434,3 +434,8 @@ multiplot <- function(..., plotlist = NULL, file, cols = 1, layout = NULL) {
 
 multiplot(p3_nolegend, p2, cols = 2)
 ```
+
+# Évolution de la proportion par catégories naturel vs. artificiel
+
+## Données ESA-land cover
+
