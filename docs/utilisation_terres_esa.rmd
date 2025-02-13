@@ -1,0 +1,107 @@
+---
+title: "Calcul de l'indicateur utilisation des terres"
+subtitle: "Utilisation des données ESA land cover"
+output:
+  html_document:
+    toc: true
+    number_sections: true
+    toc_float: true
+---
+
+```{r param, include = F}
+knitr::opts_chunk$set(message = FALSE)
+# Output figure in HTML5
+if (knitr::is_html_output()) {
+    knitr::knit_hooks$set(
+        plot = function(x, options) {
+            cap <- options$fig.cap # figure caption
+            tags <- htmltools::tags
+            as.character(tags$figure(
+                tags$img(src = x, alt = cap),
+                tags$figcaption(cap)
+            ))
+        }
+    )
+}
+
+# packages
+# source("C:/Users/ccjuhasz/Desktop/SMAC/GITHUB/SMAC-ENTROPIE_tracking/PTEBAR-JUV/packages_list.r")
+library(dplyr)
+library(stringr)
+library(knitr)
+library(plotly)
+library(ggplot2)
+library(terra)
+
+# Data
+# synth <- readRDS("C:/Users/ccjuhasz/Desktop/SMAC/Projet_publi/6-PNB_isotopes/DATA/GitHub_Pages/ISOSCAPE_synthese_par_ind.rds")
+```
+
+# Mise en contexte  
+
+**Définition** 
+
+Évolution dans le temps de la superficie des différents types d’utilisation du sol sur le territoire québécois.  
+
+**Lien avec le Nouveau cadre mondial de biodiversité de Kunming-Montréal** 
+
+**Cible 1** - Veiller à ce que toutes les zones fassent l'objet d'une planification spatiale participative, intégrée et respectueuse de la biodiversité et/ou soient gérées efficacement dans le cadre de processus de changement d'affectation des terres et des mers. 
+
+# Méthodologie  
+
+## Résumé méthodologique 
+
+- Reclassification des catégories d'utilisation du sol définies par ESA (tableau 1)
+- Utilisation des données à partir de 2010 pour éviter la problématique de changement de méthodologie à partir de cette années
+- Calcul de la proportion de pixels par type de catégories
+- Calcul du taux de variation pour chaque catégorie en comparant avec l'année 1 (ici 2010)
+
+## Traitement des catégories 
+```{r cat_treat, include = FALSE}
+esa_cats <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/CCI-LC_Maps_Legend.csv")
+names(esa_cats)[c(3, 4)] <- c("cat2", "desc2")
+```
+```{r MELCCFP_cat, echo = FALSE}
+kable(esa_cats,
+    caption = "Tab. 1. Différents niveaux de catégorisation des données ESA-LC",
+    row.names = FALSE
+)
+```
+
+# Visualisation classification niveau 2
+## Échelle du Québec
+```{r data_treat_qc_niv2, include = FALSE}
+prop <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat0_Qc.csv", h = T)
+
+comp_2010 <- prop[order(prop$year), ]
+comp_2010_ll <- split(comp_2010, comp_2010$cat0)
+comp_2010_ll2 <- lapply(comp_2010_ll, function(x) {
+    x$comp_2010 <- x$cat0_prop - x$cat0_prop[1]
+    x
+})
+
+c2010 <- do.call("rbind", comp_2010_ll2)
+
+df2 <- c2010 |>
+    group_by(year, desc0)
+
+df3 <- df2 %>%
+    mutate(text = paste(
+        "Catégorie: ", desc0,
+        "\nAnnée: ", year,
+        "\nVariation: ", comp_2010
+    ))
+```
+
+```{r vis_qc_niv2, echo = FALSE}
+p_qc <- ggplot(
+    data = df3,
+    aes(x = year, y = comp_2010, color = desc0)
+) +
+    geom_line(linewidth = 1) +
+    scale_x_continuous(breaks = seq(2010, 2020, by = 1)) +
+    labs(x = "Année", y = "Variation")
+
+int_p <- ggplotly(p_qc, tooltip = "text")
+int_p
+```

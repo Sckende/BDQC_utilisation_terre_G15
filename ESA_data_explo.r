@@ -19,6 +19,9 @@ ids <- io |>
         i$id
     })
 
+# Conserver unique a partir de 2010 pour eviter le pb de changement methodologique
+ids <- ids[1:11]
+
 url <- io |>
     stac_search(collections = "esacci-lc") |>
     post_request() |>
@@ -69,7 +72,89 @@ length(u2)
 
 # => toutes contenues dans legende des categories esa
 
-# evolution naturel vs artificiel
+# Echelle du QC
+# evolution des categories cat0 - Cropland, Tree_cover, Shrubland, Lichens_mosses, Sparse_toundra, artificial, Bare, water, pmnt_snow_ice
+esalc_cat <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/CCI-LC_Maps_Legend.csv")
+
+cat_freq0 <- data.frame()
+
+for (i in 1:length(ids)) {
+    print(paste0("----------> ", ids[i]))
+    url <- io |>
+        stac_search(collections = "esacci-lc") |>
+        post_request() |>
+        items_fetch() |>
+        _$features[[which(ids == ids[i])]]$assets[[1]]$href
+    print("url retrieved")
+
+    rast <- rast(paste0("/vsicurl/", url))
+    lc_rast <- crop(rast, qc_ll)
+    lc_rast <- mask(lc_rast, qc_ll)
+    print("crop & mask done")
+
+    # modifications des baleurs du raster
+    f1 <- freq(lc_rast)
+    df1 <- as.data.frame(values(lc_rast))
+    names(df1) <- "cat1"
+
+    df11 <- left_join(df1, esalc_cat[, c("cat1", "cat0")], by = "cat1")
+
+    lc_rast1 <- lc_rast
+    values(lc_rast1) <- df11$cat0
+
+    f2 <- freq(lc_rast1)
+    tot <- sum(f2$count)
+
+    f2$cat0_prop <- f2$count / tot
+    f2$id <- ids[i]
+    cat_freq0 <- rbind(cat_freq0, f2)
+}
+names(cat_freq0)[2] <- "cat0"
+info_cat0 <- esalc_cat[, c("cat0", "desc0")]
+info_cat0 <- info_cat0[!duplicated(info_cat0), ]
+cat_freq00 <- left_join(cat_freq0, info_cat0, by = "cat0")
+cat_freq00$year <- substring(cat_freq00$id, 11, 14)
+# write.csv(cat_freq00, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat0_Qc.csv")
+
+cat_freq00 <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat0_Qc.csv", h = T)
+
+#### visualisation
+df <- cat_freq00 |>
+    group_by(year, desc0)
+
+ggplot(
+    data = df,
+    aes(x = year, y = cat0_prop, color = desc0)
+) +
+    geom_line(linewidth = 1)
+
+#### Calcul du taux de variation par rapport à l'année 1 (2010) ####
+# test pour "Tree_cover"
+tc <- cat_freq00 |> filter(desc0 == "Tree_cover")
+tc <- tc[order(tc$year), ]
+tc$comp_2010 <- tc$cat0_prop - tc$cat0_prop[1]
+plot(x = tc$year, y = tc$comp_2010, type = "b")
+
+comp_2010 <- cat_freq00[order(cat_freq00$year), ]
+comp_2010_ll <- split(comp_2010, comp_2010$cat0)
+comp_2010_ll2 <- lapply(comp_2010_ll, function(x) {
+    x$comp_2010 <- x$cat0_prop - x$cat0_prop[1]
+    x
+})
+
+c2010 <- do.call("rbind", comp_2010_ll2)
+
+df2 <- c2010 |>
+    group_by(year, desc0)
+ggplot(
+    data = df2,
+    aes(x = year, y = comp_2010, color = desc0)
+) +
+    geom_line(linewidth = 1)
+
+# ------------------------------------- #
+#### evolution naturel vs artificiel ####
+# ------------------------------------- #
 esalc_cat <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/CCI-LC_Maps_Legend.csv")
 
 cat_freq <- data.frame()
@@ -170,12 +255,13 @@ for (i in 1:length(ids)) {
 
 cat_freq2 <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/1992-2020_artif_vs_nat_per_reg.csv", h = T, sep = ",")
 
+
 cat_reg_ls <- split(cat_freq2, cat_freq2$reg)
 cat_reg_ls
 length(cat_reg_ls)
 
 
-### Visuaisation artif vs nat per region ###
+### Visualisation artif vs nat per region ###
 x11()
 par(mfrow = c(3, 7))
 
@@ -204,48 +290,24 @@ x2 <- data.frame(
 ggplot(data = x2, aes(x = year, y = prop, fill = cat)) +
     geom_bar(position = "fill", stat = "identity")
 
+# visualisation des taux de variation par rapport à l'année 1
+qc_tx <- cat_freq2[cat_freq2$reg == "Qc", ]
+qc_tx <- qc_tx[1:11, ]
+qc_tx2 <- data.frame(
+    year = rep(2020:2010, 2),
+    cat2 = c(rep("natural", length(2020:2010)), rep("artificial", length(2020:2010))),
+    prop2 = c(qc_tx$nat_prop, qc_tx$artif_prop)
+)
+qc_tx2_ll <- split(qc_tx2, qc_tx2$cat2)
+qc_tx2_lll <- lapply(qc_tx2_ll, function(x) {
+    x$comp_2010 <- x$prop2 - x$prop2[x$year == 2010]
+    x
+})
 
+qc_c2010 <- do.call("rbind", qc_tx2_lll)
 
-
-
-
-
-
-
-
-
-
-plot(lc_rast)
-test <- lc_rast
-values(test)[values(test) != c(160, 170, 180, 210)] <- NA
-plot(test, col = "red", maxcell = 1e7)
-plot(st_geometry(qc_ll), add = T)
-
-lc_qc <- crop(esalc92, qc_ll)
-lc_qc <- mask(lc_qc, qc_ll)
-
-plot(lc_qc)
-
-v <- as.data.frame(unique(values(lc_qc)))
-
-## travail par region
-lau_mer <- qc_ll[qc_ll$NOM_PROV_N == "Les Laurentides méridionales", ]
-plot(st_geometry(lau_mer))
-
-lc_laumer <- crop(esalc20, lau_mer)
-lc_laumer <- mask(lc_laumer, lau_mer)
-plot(lc_laumer)
-
-
-bass_stla <- qc_ll[qc_ll$NOM_PROV_N == "Basses-terres du Saint-Laurent", ]
-lc_bassstla <- crop(esalc92, bass_stla)
-lc_bassstla <- mask(lc_bassstla, bass_stla)
-plot(lc_bassstla)
-table(values(lc_bassstla))
-
-utm <- project(lc_bassstla, "EPSG:6623")
-
-
-## recuperation de toutes les categories possibles pour une region
-
-t <- st_read("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/QUEBEC_regions/QUEBEC_Vectors_details.gpkg")
+ggplot(
+    data = qc_c2010,
+    aes(x = year, y = comp_2010, color = cat2)
+) +
+    geom_line(linewidth = 1)

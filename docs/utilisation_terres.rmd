@@ -89,7 +89,7 @@ df <- data.frame()
 # }
 
 for (y in c(2013:2014, 2016, 2019:2020)) {
-    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BDQC-GEOBON/data/g15_indicators/results/MELCCFP/version_3/MELCCFP_pix_per_land_type_", y, "_version_10x10res.txt"))
+    t <- read.table(paste0("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/MELCCFP/version_3/MELCCFP_pix_per_land_type_", y, "_version_10x10res.txt"))
     df <- rbind(df, t)
 }
 
