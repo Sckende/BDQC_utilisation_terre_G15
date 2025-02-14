@@ -22,20 +22,17 @@ ids <- io |>
 # Conserver unique a partir de 2010 pour eviter le pb de changement methodologique
 ids <- ids[1:11]
 
+# test url
 url <- io |>
     stac_search(collections = "esacci-lc") |>
     post_request() |>
     items_fetch() |>
     _$features[[which(ids == ids[10])]]$assets[[1]]$href
 
-esalc92 <- rast(paste0("/vsicurl/", url))
 esalc20 <- rast(paste0("/vsicurl/", url))
-x11()
-par(mfrow = c(2, 1))
-plot(esalc92)
+
 plot(esalc20)
-summary(values(esalc92))
-crs(esalc92)
+crs(esalc20)
 
 qc <- st_read("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
 plot(st_geometry(qc))
