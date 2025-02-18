@@ -194,33 +194,53 @@ for (i in 1:length(ids)) {
     print("url retrieved")
 
     rast <- rast(paste0("/vsicurl/", url))
-    lc_rast <- crop(rast, qc_ll)
-    lc_rast <- mask(lc_rast, qc_ll)
-    print("crop & mask done")
 
-    # modifications des baleurs du raster
-    f1 <- freq(lc_rast)
-    df1 <- as.data.frame(values(lc_rast))
-    names(df1) <- "cat1"
+    for (j in 1:length(qc_ll$NAM_PROV_N)) {
+        poly <- qc_ll[j, ]
+        print(poly$NAM_PROV_N)
+        lc_rast <- crop(rast, poly)
+        lc_rast <- mask(lc_rast, poly)
+        print("crop & mask done")
 
-    df11 <- left_join(df1, esalc_cat[, c("cat1", "cat4")], by = "cat1")
+        # modifications des baleurs du raster
+        f1 <- freq(lc_rast)
+        df1 <- as.data.frame(values(lc_rast))
+        names(df1) <- "cat1"
 
-    lc_rast1 <- lc_rast
-    values(lc_rast1) <- df11$cat4
+        df11 <- left_join(df1, esalc_cat[, c("cat1", "cat4")], by = "cat1")
 
-    f2 <- freq(lc_rast1)
-    tot <- sum(f2$count)
+        lc_rast1 <- lc_rast
+        values(lc_rast1) <- df11$cat4
 
-    f2$cat4_prop <- f2$count / tot
-    f2$id <- ids[i]
-    cat4_freq <- rbind(cat4_freq, f2)
+        f2 <- freq(lc_rast1)
+        # check for the missing categorie
+        cat4 <- c(1, 3, 4, 9, 10, 12)
+        el <- is.element(cat4, f2$value)
+        m_cat <- cat4[!el]
+
+        if (length(m_cat) != 0) {
+            f2 <- rbind(f2, data.frame(layer = 1, value = m_cat, count = 0))
+        }
+
+        tot <- sum(f2$count)
+
+        f2$id <- ids[i]
+        f2$pix_tot <- tot
+        f2$prop <- f2$count / tot
+        f2$reg <- poly$NAM_PROV_N
+        f2$year <- substring(f2$id, 11, 14)
+
+        cat4_freq <- rbind(cat4_freq, f2)
+    }
 }
+
+
 names(cat4_freq)[2] <- "cat4"
 info_cat4 <- esalc_cat[, c("cat4", "desc4")]
 info_cat4 <- info_cat4[!duplicated(info_cat4), ]
 cat4_freq2 <- left_join(cat4_freq, info_cat4, by = "cat4")
-cat4_freq2$year <- substring(cat4_freq2$id, 11, 14)
-# write.csv(cat4_freq2, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_Qc.csv")
+# cat4_freq2$year <- substring(cat4_freq2$id, 11, 14)
+# write.csv(cat4_freq2, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_per_reg.csv")
 
 cat4_fq <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_Qc.csv", h = T)
 # Calcul du taux de variation par rapport à l'année 1 (2010) #
@@ -259,7 +279,74 @@ p4 <- ggplot(
 
 ggsave(file = "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/2010-2020_utilisation_terres_esa_version2.svg", plot = p4, width = 10, height = 8)
 
+# Visualisation par region
+df <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_per_reg.csv")
+df <- df[df$desc4 != "water", ]
+df <- df[order(df$year), ]
+df_reg <- split(df, list(df$reg, df$cat4))
 
+var2010 <- lapply(df_reg, function(x) {
+    x$comp_cat4_2010 <- x$prop - x$prop[1]
+    x
+})
+
+var_df <- do.call("rbind", var2010)
+
+var_df_reg <- split(var_df, var_df$reg)
+
+plot_obj <- lapply(var_df_reg, function(x) {
+    df <- x |>
+        group_by(year, desc4)
+
+    p4 <- ggplot(
+        data = df,
+        aes(x = year, y = comp_cat4_2010 * 100, color = desc4)
+    ) +
+        geom_line(linewidth = 1) +
+        labs(color = "Catégories") +
+        scale_color_manual(
+            labels = c("artificiel", "terre agricole", "prairie", "autres terres", "forêt", "milieu humide"),
+            values = c(
+                "#CC0000",
+                "#993300",
+                "#CC9900",
+                "#33CC66",
+                "#006600",
+                "#006666"
+            )
+        ) +
+        scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
+        scale_y_continuous(name = "Variation (%)", limits = c(-1.25, 1.25))
+    p4
+})
+
+for (i in 1:length(var_df_reg)) {
+    df <- var_df_reg[[i]] |>
+        group_by(year, desc4)
+
+    p4 <- ggplot(
+        data = df,
+        aes(x = year, y = comp_cat4_2010 * 100, color = desc4)
+    ) +
+        geom_line(linewidth = 1) +
+        labs(title = unique(df$reg), color = "Catégories") +
+        scale_color_manual(
+            labels = c("artificiel", "terre agricole", "prairie", "autres terres", "forêt", "milieu humide"),
+            values = c(
+                "#CC0000",
+                "#993300",
+                "#CC9900",
+                "#33CC66",
+                "#006600",
+                "#006666"
+            )
+        ) +
+        scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
+        scale_y_continuous(name = "Variation (%)", limits = c(-1.25, 1.25))
+    p4
+
+    ggsave(file = paste0("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/2010-2020_utilisation_terres_esa_", unique(df$reg), ".svg"), plot = p4, width = 10, height = 8)
+}
 # ------------------------------------- #
 #### evolution naturel vs artificiel ####
 # ------------------------------------- #
