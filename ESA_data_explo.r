@@ -26,16 +26,16 @@ url <- io |>
     stac_search(collections = "esacci-lc") |>
     post_request() |>
     items_fetch() |>
-    _$features[[which(ids == ids[10])]]$assets[[1]]$href
+    _$features[[which(ids == ids[1])]]$assets[[1]]$href
 
-esalc92 <- rast(paste0("/vsicurl/", url))
+# esalc92 <- rast(paste0("/vsicurl/", url))
 esalc20 <- rast(paste0("/vsicurl/", url))
 x11()
 par(mfrow = c(2, 1))
-plot(esalc92)
+# plot(esalc92)
 plot(esalc20)
-summary(values(esalc92))
-crs(esalc92)
+# summary(values(esalc92))
+crs(esalc20)
 
 qc <- st_read("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/QUEBEC_regions/sf_CERQ_SHP/QUEBEC_CR_NIV_01.gpkg")
 plot(st_geometry(qc))
@@ -130,11 +130,12 @@ ggplot(
 
 #### Calcul du taux de variation par rapport à l'année 1 (2010) ####
 # test pour "Tree_cover"
-tc <- cat_freq00 |> filter(desc0 == "Tree_cover")
-tc <- tc[order(tc$year), ]
-tc$comp_2010 <- tc$cat0_prop - tc$cat0_prop[1]
-plot(x = tc$year, y = tc$comp_2010, type = "b")
+# tc <- cat_freq00 |> filter(desc0 == "Tree_cover")
+# tc <- tc[order(tc$year), ]
+# tc$comp_2010 <- tc$cat0_prop - tc$cat0_prop[1]
+# plot(x = tc$year, y = tc$comp_2010, type = "b")
 # --- #
+# Application
 comp_2010 <- cat_freq00[order(cat_freq00$year), ]
 comp_2010_ll <- split(comp_2010, comp_2010$cat0)
 comp_2010_ll2 <- lapply(comp_2010_ll, function(x) {
@@ -146,11 +147,118 @@ c2010 <- do.call("rbind", comp_2010_ll2)
 
 df2 <- c2010 |>
     group_by(year, desc0)
-ggplot(
+p <- ggplot(
     data = df2,
-    aes(x = year, y = comp_2010, color = desc0)
+    aes(x = round(year), y = comp_2010 * 100, color = desc0)
 ) +
-    geom_line(linewidth = 1)
+    geom_line(linewidth = 1) +
+    labs(color = "Catégories") +
+    scale_color_manual(
+        labels = c("artificiel", "terrain nu", "terre agricole", "prairie", "lichens & mousses", "arbustaie", "terre type toundra", "forêt", "eau", "milieu humide"),
+        values = c(
+            "#CC0000",
+            "#FFCCCC",
+            "#993300",
+            "#FFCC00",
+            "#CC9900",
+            "#33CC66",
+            "#999900",
+            "#006600",
+            "#0000CC",
+            "#006666"
+        )
+    ) +
+    scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
+    scale_y_continuous(name = "Variation (%)", limits = c(-1.25, 1.25))
+
+ggsave(file = "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/2010-2020_utilisation_terres_esa.svg", plot = p, width = 10, height = 8)
+
+# ---- #
+# Version avec la categorie "Autres terres" qui regroupe "Bare", "Lichens_mosses", "Shrubland", "Sparse_tundra"
+esalc_cat <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/CCI-LC_Maps_Legend.csv")
+esalc_cat$desc4 <- esalc_cat$desc0
+esalc_cat$desc4[esalc_cat$desc0 %in% c("Bare", "Lichens_mosses", "Shrubland", "Sparse_toundra")] <- "Other_land"
+esalc_cat$cat4 <- esalc_cat$cat0
+esalc_cat$cat4[esalc_cat$cat0 %in% c(2, 5, 7, 8)] <- 12
+
+# calcul des frequences
+cat4_freq <- data.frame()
+
+for (i in 1:length(ids)) {
+    print(paste0("----------> ", ids[i]))
+    url <- io |>
+        stac_search(collections = "esacci-lc") |>
+        post_request() |>
+        items_fetch() |>
+        _$features[[which(ids == ids[i])]]$assets[[1]]$href
+    print("url retrieved")
+
+    rast <- rast(paste0("/vsicurl/", url))
+    lc_rast <- crop(rast, qc_ll)
+    lc_rast <- mask(lc_rast, qc_ll)
+    print("crop & mask done")
+
+    # modifications des baleurs du raster
+    f1 <- freq(lc_rast)
+    df1 <- as.data.frame(values(lc_rast))
+    names(df1) <- "cat1"
+
+    df11 <- left_join(df1, esalc_cat[, c("cat1", "cat4")], by = "cat1")
+
+    lc_rast1 <- lc_rast
+    values(lc_rast1) <- df11$cat4
+
+    f2 <- freq(lc_rast1)
+    tot <- sum(f2$count)
+
+    f2$cat4_prop <- f2$count / tot
+    f2$id <- ids[i]
+    cat4_freq <- rbind(cat4_freq, f2)
+}
+names(cat4_freq)[2] <- "cat4"
+info_cat4 <- esalc_cat[, c("cat4", "desc4")]
+info_cat4 <- info_cat4[!duplicated(info_cat4), ]
+cat4_freq2 <- left_join(cat4_freq, info_cat4, by = "cat4")
+cat4_freq2$year <- substring(cat4_freq2$id, 11, 14)
+# write.csv(cat4_freq2, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_Qc.csv")
+
+cat4_fq <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_Qc.csv", h = T)
+# Calcul du taux de variation par rapport à l'année 1 (2010) #
+
+comp_2010_cat4 <- cat4_fq[order(cat4_fq$year), ]
+comp_2010_cat4_ll <- split(comp_2010_cat4, comp_2010_cat4$cat4)
+comp_2010_cat4_ll2 <- lapply(comp_2010_cat4_ll, function(x) {
+    x$comp_cat4_2010 <- x$cat4_prop - x$cat4_prop[1]
+    x
+})
+
+cat4_2010 <- do.call("rbind", comp_2010_cat4_ll2)
+cat4_2010 <- cat4_2010[cat4_2010$desc4 != "water", ]
+
+df2_4 <- cat4_2010 |>
+    group_by(year, desc4)
+p4 <- ggplot(
+    data = df2_4,
+    aes(x = round(year), y = comp_cat4_2010 * 100, color = desc4)
+) +
+    geom_line(linewidth = 1) +
+    labs(color = "Catégories") +
+    scale_color_manual(
+        labels = c("artificiel", "terre agricole", "prairie", "autres terres", "forêt", "milieu humide"),
+        values = c(
+            "#CC0000",
+            "#993300",
+            "#CC9900",
+            "#33CC66",
+            "#006600",
+            "#006666"
+        )
+    ) +
+    scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
+    scale_y_continuous(name = "Variation (%)", limits = c(-1.25, 1.25))
+
+ggsave(file = "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/2010-2020_utilisation_terres_esa_version2.svg", plot = p4, width = 10, height = 8)
+
 
 # ------------------------------------- #
 #### evolution naturel vs artificiel ####

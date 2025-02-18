@@ -25,16 +25,12 @@ if (knitr::is_html_output()) {
 }
 
 # packages
-# source("C:/Users/ccjuhasz/Desktop/SMAC/GITHUB/SMAC-ENTROPIE_tracking/PTEBAR-JUV/packages_list.r")
 library(dplyr)
 library(stringr)
 library(knitr)
 library(plotly)
 library(ggplot2)
 library(terra)
-
-# Data
-# synth <- readRDS("C:/Users/ccjuhasz/Desktop/SMAC/Projet_publi/6-PNB_isotopes/DATA/GitHub_Pages/ISOSCAPE_synthese_par_ind.rds")
 ```
 
 # Mise en contexte  
