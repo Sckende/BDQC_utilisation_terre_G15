@@ -1,0 +1,290 @@
+{
+  "data": [
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, 0.00079413435469198861, 0.0016321995460259926, 0.0022675070297789937, 0.0028994352184059978, 0.0033623986507150044, 0.0047141167012539975, 0.0053798378411439854, 0.0059408008321179843, 0.0069816237310329913, 0.0069816237310329913],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: artificial", "round(year): 2011<br />comp_cat4_2010 * 100:  0.0007941344<br />desc4: artificial", "round(year): 2012<br />comp_cat4_2010 * 100:  0.0016321995<br />desc4: artificial", "round(year): 2013<br />comp_cat4_2010 * 100:  0.0022675070<br />desc4: artificial", "round(year): 2014<br />comp_cat4_2010 * 100:  0.0028994352<br />desc4: artificial", "round(year): 2015<br />comp_cat4_2010 * 100:  0.0033623987<br />desc4: artificial", "round(year): 2016<br />comp_cat4_2010 * 100:  0.0047141167<br />desc4: artificial", "round(year): 2017<br />comp_cat4_2010 * 100:  0.0053798378<br />desc4: artificial", "round(year): 2018<br />comp_cat4_2010 * 100:  0.0059408008<br />desc4: artificial", "round(year): 2019<br />comp_cat4_2010 * 100:  0.0069816237<br />desc4: artificial", "round(year): 2020<br />comp_cat4_2010 * 100:  0.0069816237<br />desc4: artificial"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(204,0,0,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "artificial",
+      "legendgroup": "artificial",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    },
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, 0.0046431515035999515, 0.0049912189016100561, 0.0050757012797698897, 0.0046465307987200721, 0.0043356356470999891, 0.006092869112800034, 0.0074581043438399358, 0.012969734694920007, 0.015730618813139877, 0.018457709980099907],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: Cropland", "round(year): 2011<br />comp_cat4_2010 * 100:  0.0046431515<br />desc4: Cropland", "round(year): 2012<br />comp_cat4_2010 * 100:  0.0049912189<br />desc4: Cropland", "round(year): 2013<br />comp_cat4_2010 * 100:  0.0050757013<br />desc4: Cropland", "round(year): 2014<br />comp_cat4_2010 * 100:  0.0046465308<br />desc4: Cropland", "round(year): 2015<br />comp_cat4_2010 * 100:  0.0043356356<br />desc4: Cropland", "round(year): 2016<br />comp_cat4_2010 * 100:  0.0060928691<br />desc4: Cropland", "round(year): 2017<br />comp_cat4_2010 * 100:  0.0074581043<br />desc4: Cropland", "round(year): 2018<br />comp_cat4_2010 * 100:  0.0129697347<br />desc4: Cropland", "round(year): 2019<br />comp_cat4_2010 * 100:  0.0157306188<br />desc4: Cropland", "round(year): 2020<br />comp_cat4_2010 * 100:  0.0184577100<br />desc4: Cropland"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(167,88,34,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "Cropland",
+      "legendgroup": "Cropland",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    },
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, 0.004217360317679969, 0.0051196321164149843, 0.0053359070045009942, 0.0071573470776019853, 0.0097188527833729638, 0.0095397501416769753, 0.0059036285857279845, 0.011415258936798948, 0.015102069919642989, 0.013098147909719991],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: Grassland", "round(year): 2011<br />comp_cat4_2010 * 100:  0.0042173603<br />desc4: Grassland", "round(year): 2012<br />comp_cat4_2010 * 100:  0.0051196321<br />desc4: Grassland", "round(year): 2013<br />comp_cat4_2010 * 100:  0.0053359070<br />desc4: Grassland", "round(year): 2014<br />comp_cat4_2010 * 100:  0.0071573471<br />desc4: Grassland", "round(year): 2015<br />comp_cat4_2010 * 100:  0.0097188528<br />desc4: Grassland", "round(year): 2016<br />comp_cat4_2010 * 100:  0.0095397501<br />desc4: Grassland", "round(year): 2017<br />comp_cat4_2010 * 100:  0.0059036286<br />desc4: Grassland", "round(year): 2018<br />comp_cat4_2010 * 100:  0.0114152589<br />desc4: Grassland", "round(year): 2019<br />comp_cat4_2010 * 100:  0.0151020699<br />desc4: Grassland", "round(year): 2020<br />comp_cat4_2010 * 100:  0.0130981479<br />desc4: Grassland"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(229,181,74,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "Grassland",
+      "legendgroup": "Grassland",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    },
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, 0.099932515476303108, 0.19426553892830101, 0.2182281206692005, 0.27067478103010023, 0.33841275183770225, 0.48422595724449957, 0.50900970770110243, 0.64396185857180099, 0.92209812324089979, 0.9397853539322043],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: Other_land", "round(year): 2011<br />comp_cat4_2010 * 100:  0.0999325155<br />desc4: Other_land", "round(year): 2012<br />comp_cat4_2010 * 100:  0.1942655389<br />desc4: Other_land", "round(year): 2013<br />comp_cat4_2010 * 100:  0.2182281207<br />desc4: Other_land", "round(year): 2014<br />comp_cat4_2010 * 100:  0.2706747810<br />desc4: Other_land", "round(year): 2015<br />comp_cat4_2010 * 100:  0.3384127518<br />desc4: Other_land", "round(year): 2016<br />comp_cat4_2010 * 100:  0.4842259572<br />desc4: Other_land", "round(year): 2017<br />comp_cat4_2010 * 100:  0.5090097077<br />desc4: Other_land", "round(year): 2018<br />comp_cat4_2010 * 100:  0.6439618586<br />desc4: Other_land", "round(year): 2019<br />comp_cat4_2010 * 100:  0.9220981232<br />desc4: Other_land", "round(year): 2020<br />comp_cat4_2010 * 100:  0.9397853539<br />desc4: Other_land"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(51,204,102,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "Other_land",
+      "legendgroup": "Other_land",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    },
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, -0.12100242058910027, -0.26797134492909658, -0.33455697609859891, -0.38714556685479629, -0.45545463853879919, -0.60654968222799699, -0.63362459478029654, -0.77879235481789766, -1.0849700104453963, -1.1123186459029988],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: Tree_cover", "round(year): 2011<br />comp_cat4_2010 * 100: -0.1210024206<br />desc4: Tree_cover", "round(year): 2012<br />comp_cat4_2010 * 100: -0.2679713449<br />desc4: Tree_cover", "round(year): 2013<br />comp_cat4_2010 * 100: -0.3345569761<br />desc4: Tree_cover", "round(year): 2014<br />comp_cat4_2010 * 100: -0.3871455669<br />desc4: Tree_cover", "round(year): 2015<br />comp_cat4_2010 * 100: -0.4554546385<br />desc4: Tree_cover", "round(year): 2016<br />comp_cat4_2010 * 100: -0.6065496822<br />desc4: Tree_cover", "round(year): 2017<br />comp_cat4_2010 * 100: -0.6336245948<br />desc4: Tree_cover", "round(year): 2018<br />comp_cat4_2010 * 100: -0.7787923548<br />desc4: Tree_cover", "round(year): 2019<br />comp_cat4_2010 * 100: -1.0849700104<br />desc4: Tree_cover", "round(year): 2020<br />comp_cat4_2010 * 100: -1.1123186459<br />desc4: Tree_cover"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(36,70,59,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "Tree_cover",
+      "legendgroup": "Tree_cover",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    },
+    {
+      "x": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "y": [0, -0.005694112287894966, -0.014064626315856039, -0.016980958009892976, -0.018829432444004979, -0.020968526258981993, -0.022387830212047995, -0.023557066325763983, -0.026828224008066965, -0.038970031397030959, -0.040281197906053959],
+      "text": ["round(year): 2010<br />comp_cat4_2010 * 100:  0.0000000000<br />desc4: Wetland", "round(year): 2011<br />comp_cat4_2010 * 100: -0.0056941123<br />desc4: Wetland", "round(year): 2012<br />comp_cat4_2010 * 100: -0.0140646263<br />desc4: Wetland", "round(year): 2013<br />comp_cat4_2010 * 100: -0.0169809580<br />desc4: Wetland", "round(year): 2014<br />comp_cat4_2010 * 100: -0.0188294324<br />desc4: Wetland", "round(year): 2015<br />comp_cat4_2010 * 100: -0.0209685263<br />desc4: Wetland", "round(year): 2016<br />comp_cat4_2010 * 100: -0.0223878302<br />desc4: Wetland", "round(year): 2017<br />comp_cat4_2010 * 100: -0.0235570663<br />desc4: Wetland", "round(year): 2018<br />comp_cat4_2010 * 100: -0.0268282240<br />desc4: Wetland", "round(year): 2019<br />comp_cat4_2010 * 100: -0.0389700314<br />desc4: Wetland", "round(year): 2020<br />comp_cat4_2010 * 100: -0.0402811979<br />desc4: Wetland"],
+      "type": "scatter",
+      "mode": "lines",
+      "line": {
+        "width": 3.7795275590551185,
+        "color": "rgba(106,179,175,1)",
+        "dash": "solid"
+      },
+      "hoveron": "points",
+      "name": "Wetland",
+      "legendgroup": "Wetland",
+      "showlegend": true,
+      "xaxis": "x",
+      "yaxis": "y",
+      "hoverinfo": "text",
+      "frame": null
+    }
+  ],
+  "layout": {
+    "margin": {
+      "t": 23.305936073059364,
+      "r": 7.3059360730593621,
+      "b": 40.182648401826491,
+      "l": 62.100456621004582
+    },
+    "plot_bgcolor": "rgba(255,255,255,1)",
+    "paper_bgcolor": "rgba(255,255,255,1)",
+    "font": {
+      "color": "rgba(0,0,0,1)",
+      "family": "",
+      "size": 14.611872146118724
+    },
+    "xaxis": {
+      "domain": [0, 1],
+      "automargin": true,
+      "type": "linear",
+      "autorange": false,
+      "range": [2009.5, 2020.5],
+      "tickmode": "array",
+      "ticktext": ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"],
+      "tickvals": [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020],
+      "categoryorder": "array",
+      "categoryarray": ["2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020"],
+      "nticks": null,
+      "ticks": "outside",
+      "tickcolor": "rgba(51,51,51,1)",
+      "ticklen": 3.6529680365296811,
+      "tickwidth": 0,
+      "showticklabels": true,
+      "tickfont": {
+        "color": "rgba(77,77,77,1)",
+        "family": "",
+        "size": 14.611872146118724
+      },
+      "tickangle": -0,
+      "showline": true,
+      "linecolor": "rgba(0,0,0,1)",
+      "linewidth": 1.32835201328352,
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,1)",
+      "gridwidth": 0.66417600664176002,
+      "zeroline": false,
+      "anchor": "y",
+      "title": {
+        "text": "Année",
+        "font": {
+          "color": "rgba(0,0,0,1)",
+          "family": "",
+          "size": 14.611872146118724
+        }
+      },
+      "hoverformat": ".2f"
+    },
+    "yaxis": {
+      "domain": [0, 1],
+      "automargin": true,
+      "type": "linear",
+      "autorange": false,
+      "range": [-1.3625, 1.1125],
+      "tickmode": "array",
+      "ticktext": ["-1.25", "-0.75", "-0.25", "0.25", "0.75"],
+      "tickvals": [-1.25, -0.75, -0.25, 0.25, 0.74999999999999978],
+      "categoryorder": "array",
+      "categoryarray": ["-1.25", "-0.75", "-0.25", "0.25", "0.75"],
+      "nticks": null,
+      "ticks": "outside",
+      "tickcolor": "rgba(51,51,51,1)",
+      "ticklen": 3.6529680365296811,
+      "tickwidth": 0,
+      "showticklabels": true,
+      "tickfont": {
+        "color": "rgba(77,77,77,1)",
+        "family": "",
+        "size": 14.611872146118724
+      },
+      "tickangle": -0,
+      "showline": true,
+      "linecolor": "rgba(0,0,0,1)",
+      "linewidth": 1.32835201328352,
+      "showgrid": true,
+      "gridcolor": "rgba(0,0,0,1)",
+      "gridwidth": 0.66417600664176002,
+      "zeroline": false,
+      "anchor": "x",
+      "title": {
+        "text": "Variation (%)",
+        "font": {
+          "color": "rgba(0,0,0,1)",
+          "family": "",
+          "size": 14.611872146118724
+        }
+      },
+      "hoverformat": ".2f"
+    },
+    "shapes": [
+      {
+        "type": "rect",
+        "fillcolor": null,
+        "line": {
+          "color": null,
+          "width": 0,
+          "linetype": []
+        },
+        "yref": "paper",
+        "xref": "paper",
+        "x0": 0,
+        "x1": 1,
+        "y0": 0,
+        "y1": 1
+      }
+    ],
+    "showlegend": true,
+    "legend": {
+      "bgcolor": "rgba(255,255,255,1)",
+      "bordercolor": "transparent",
+      "borderwidth": 1.8897637795275593,
+      "font": {
+        "color": "rgba(0,0,0,1)",
+        "family": "",
+        "size": 14.611872146118724
+      },
+      "title": {
+        "text": "Catégories",
+        "font": {
+          "color": "rgba(0,0,0,1)",
+          "family": "",
+          "size": 14.611872146118724
+        }
+      }
+    },
+    "hovermode": "closest",
+    "barmode": "relative"
+  },
+  "config": {
+    "doubleClick": "reset",
+    "modeBarButtonsToAdd": ["hoverclosest", "hovercompare"],
+    "showSendToCloud": false
+  },
+  "source": "A",
+  "attrs": {
+    "254ab49580c33": {
+      "x": {},
+      "y": {},
+      "colour": {},
+      "type": "scatter"
+    }
+  },
+  "cur_data": "254ab49580c33",
+  "visdat": {
+    "254ab49580c33": ["function (y) ", "x"]
+  },
+  "highlight": {
+    "on": "plotly_click",
+    "persistent": false,
+    "dynamic": false,
+    "selectize": false,
+    "opacityDim": 0.20000000000000001,
+    "selected": {
+      "opacity": 1
+    },
+    "debounce": 0
+  },
+  "shinyEvents": ["plotly_hover", "plotly_click", "plotly_selected", "plotly_relayout", "plotly_brushed", "plotly_brushing", "plotly_clickannotation", "plotly_doubleclick", "plotly_deselect", "plotly_afterplot", "plotly_sunburstclick"],
+  "base_url": "https://plot.ly"
+}

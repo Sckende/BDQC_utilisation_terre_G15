@@ -279,6 +279,41 @@ p4 <- ggplot(
 
 ggsave(file = "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/2010-2020_utilisation_terres_esa_version2.svg", plot = p4, width = 10, height = 8)
 
+# pour presentation Vincent
+theme_rlpi <- theme(
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    panel.background = element_rect(fill = "white"),
+    panel.grid.major = element_line(colour = "black", size = 0.5),
+    panel.grid.minor = element_blank(),
+    axis.line = element_line(colour = "black", size = 1),
+    axis.ticks = element_line(size = 0),
+    legend.position = "right"
+)
+
+ut_plot <- ggplot(
+    data = df2_4,
+    aes(x = round(year), y = comp_cat4_2010 * 100, color = desc4)
+) +
+    geom_line(size = 1) +
+    labs(color = "Catégories") +
+    scale_color_manual(
+        labels = c("artificiel", "terre agricole", "prairie", "autres terres", "forêt", "milieu humide"),
+        values = c(
+            "#CC0000",
+            "#A75822",
+            "#E5B54A",
+            "#33CC66",
+            "#24463B",
+            "#6AB3AF"
+        )
+    ) +
+    scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
+    scale_y_continuous(name = "Variation (%)", limits = c(-1.25, 1), breaks = seq(-1.25, 1, 0.5)) +
+    theme_rlpi
+# Use jsonlite to write result from plotly_json to a file
+write(plotly_json(ut_plot)$x$data, "indicator_ut.json")
+
 # Visualisation par region
 df <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat4_per_reg.csv")
 df <- df[df$desc4 != "water", ]
