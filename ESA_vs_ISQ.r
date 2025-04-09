@@ -12,6 +12,7 @@ library(dplyr)
 library(sf)
 library(terra)
 library(rstac)
+library(plotly)
 
 # ---- data pour decoupage admin
 dec <- st_read("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/QUEBEC_regions/BDGA_1M(adm)_SHP/regio_s.shp")
@@ -102,6 +103,12 @@ comp <- lapply(fq_ls, function(x) {
 })
 
 comp2010_tot <- do.call("rbind", comp)
+d <- comp2010_tot |>
+    group_by(region, year) |>
+    summarise(pix_tot = sum(count_tot))
+d2 <- d[d$year == 2010, ]
+comp2010_tot <- left_join(comp2010_tot, d2[, c("region", "pix_tot")])
+# saveRDS(comp2010_tot, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_comp2010_ISQ_reg.rds")
 
 # ---- Visualisation
 # variation des taux
@@ -109,7 +116,7 @@ visu_ls <- split(comp2010_tot, comp2010_tot$region)
 
 for (i in 1:length(visu_ls)) {
     x <- visu_ls[[i]]
-    x11()
+    # x11()
 
     p4 <- ggplot(
         data = x,
@@ -130,5 +137,50 @@ for (i in 1:length(visu_ls)) {
         ) +
         # scale_x_continuous(name = "Année", limits = c(2010, 2020), breaks = 2010:2020) +
         scale_y_continuous(name = "Variation (%)", limits = c(-35, 35))
-    print(p4)
+    # print(p4)
+
+    ggsave(file = paste0("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/region_used_by_ISQ/2010-2020_utilisation_terres_esa_", unique(x$region), ".svg"), plot = p4, width = 10, height = 8)
 }
+
+# ---- proportion de type d'habitat à l'année 0 (soit 2010)
+
+
+
+
+
+d <- readRDS("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_comp2010_ISQ_reg.rds")
+dd <- d[d$year == 2010, c("region", "count_tot", "IPCC_class")]
+dd_ls <- split(dd, dd$region)
+data <- dd_ls[[1]]
+colors <- c(
+    "#993300", # agriculture
+    "#006600", # forest
+    "#CC9900", # grassland
+    "#96ac9d", # other
+    "#CC0000", # settlement
+    "#019191" # wetland
+)
+
+fig <- plot_ly(data,
+    labels = ~IPCC_class, values = ~count_tot, type = "pie", textposition = "inside",
+    textinfo = "label+percent",
+    insidetextfont = list(color = "#FFFFFF"),
+    hoverinfo = "text",
+    text = ~ paste("n = ", count_tot),
+    marker = list(
+        colors = colors,
+        line = list(color = "#FFFFFF", width = 1)
+    ),
+
+    # The 'pull' attribute can also be used to create space between the sectors
+
+    showlegend = FALSE
+)
+
+fig <- fig %>% layout(
+    xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+    yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+)
+
+
+fig
