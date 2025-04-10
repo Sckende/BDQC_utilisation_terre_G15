@@ -163,7 +163,8 @@ i <- 1
 print(plot_ls[[i]])
 # }
 ```
-```{r pie1, echo=FALSE, fig.show = "hold", out.width = "50%", warning = FALSE, message = FALSE}
+```{r pie1, echo=FALSE,warning = FALSE, message = FALSE}
+# ```{r pie1, echo=FALSE, fig.show = "hold", out.width = "50%", warning = FALSE, message = FALSE}
 data <- data_pie[data_pie$region == regions[i], ]
 fig <- plot_ly(data,
     labels = ~IPCC_class, values = ~count_tot, type = "pie", textposition = "inside",
@@ -186,9 +187,29 @@ fig <- fig %>% layout(
     yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
 )
 
+plo <- plot_ly(y = data_pie$count_tot[data_pie$region == "Abitibi-Témiscamingue"], name = data_pie$IPCC_class[data_pie$region == "Abitibi-Témiscamingue"], type = "bar") %>% layout(showlegend = FALSE)
 
-fig
+
+subplo <- subplot(plot_ls[[i]], plo) %>%
+    layout(title = "Side By Side Subplots")
+
+subplo
 # }
+
+
+p <- plot_ly()
+
+p <- p %>% add_pie(data = data_pie[data_pie$region == "Abitibi-Témiscamingue",],
+                   labels = ~IPCC_class,
+                   values = ~count_tot,
+                   name = "Abitibi-Témiscamingue",
+                   domain = list(x = c(0, 0.4), y = c(0.4, 1)))
+p <- p %>% add_pie(data = data_pie[data_pie$region == "Bas-Saint-Laurent",],
+                   labels = ~IPCC_class,
+                   values = ~count_tot,
+                   name = "Bas-Saint-Laurent",
+                   domain = list(x = c(0.6, 1), y = c(0.4, 1)))
+p
 ```
 
 ```{r plot2, echo=FALSE, fig.show = "hold", out.width = "50%", warning = FALSE, message = FALSE}
