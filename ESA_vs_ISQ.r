@@ -18,24 +18,23 @@ library(plotly)
 dec <- st_read("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/QUEBEC_regions/BDGA_1M(adm)_SHP/regio_s.shp")
 plot(st_geometry(dec))
 
-# selection des regions d'interet
-dec2 <- dec[dec$RES_NM_REG %in% c(
-    "Bas-Saint-Laurent",
-    "Capitale-Nationale",
-    "Mauricie",
-    "Estrie",
-    "Montréal",
-    "Outaouais",
-    "Abitibi-Témiscamingue",
-    "Gaspésie–Îles-de-la-Madeleine",
-    "Chaudière-Appalaches",
-    "Laval",
-    "Lanaudière",
-    "Laurentides",
-    "Centre-du-Québec"
-), ]
-plot(st_geometry(dec2))
-
+# selection des regions d'interet (12 régions pour lesquelles ISQ a une synthese)
+# dec2 <- dec[dec$RES_NM_REG %in% c(
+#     "Bas-Saint-Laurent",
+#     "Capitale-Nationale",
+#     "Estrie",
+#     "Montréal",
+#     "Outaouais",
+#     "Abitibi-Témiscamingue",
+#     "Gaspésie–Îles-de-la-Madeleine",
+#     "Chaudière-Appalaches",
+#     "Laval",
+#     "Lanaudière",
+#     "Laurentides",
+#     "Montérégie"
+# ), ]
+# plot(st_geometry(dec2))
+dec2 <- dec
 # conversion to the same CRS than ESA
 dec2 <- st_transform(dec2, crs = st_crs(4326))
 
@@ -108,7 +107,35 @@ d <- comp2010_tot |>
     summarise(pix_tot = sum(count_tot))
 d2 <- d[d$year == 2010, ]
 comp2010_tot <- left_join(comp2010_tot, d2[, c("region", "pix_tot")])
-# saveRDS(comp2010_tot, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_comp2010_ISQ_reg.rds")
+comp2010_tot$year <- as.numeric(comp2010_tot$year)
+
+# ---- verifier si toutes les IPCC_class sont presentes dans chaque region
+ipcc_class <- unique(comp2010_tot$IPCC_class)
+class <- split(comp2010_tot, comp2010_tot$region)
+class2 <- lapply(class, function(x) {
+    miss_cl <- ipcc_class[!ipcc_class %in% unique(x$IPCC_class)]
+    if (length(miss_cl) != 0) {
+        df <- data.frame()
+        for (i in 1:length(miss_cl)) {
+            d <- data.frame(
+                region = unique(x$region),
+                year = 2010:2020,
+                IPCC_class = miss_cl[i],
+                count_tot = NA,
+                comp2010 = NA,
+                comp_rate = NA,
+                pix_tot = 0
+            )
+            df <- rbind(df, d)
+        }
+    }
+    x <- rbind(x, df)
+
+    x
+})
+
+cl_df <- do.call("rbind", class2)
+# saveRDS(cl_df, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_comp2010_ISQ_reg.rds")
 
 # ---- Visualisation
 # variation des taux
