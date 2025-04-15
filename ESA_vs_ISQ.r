@@ -82,7 +82,7 @@ for (i in 1:length(ids)) {
         cat_tot <- rbind(cat_tot, v)
     }
 }
-
+# saveRDS(cat_tot, "/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Data/g15_indicators/results/ESA/2010-2020_frq_cat1_per_reg.rds")
 # ---- association avec IPCC categories
 esalc_cat <- read.csv("/home/local/USHERBROOKE/juhc3201/BdQc/ReseauSuivi/Indicators/G15_utilisation_terres/CCI-LC_Maps_Legend.csv")
 
